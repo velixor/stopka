@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using TMPro;
 
@@ -40,6 +41,39 @@ namespace Stopka
                     newHighScoreBadge.SetActive(score.Score >= score.HighScore && score.Score > 0);
                     break;
             }
+        }
+
+        private Coroutine comboFadeCoroutine;
+
+        public void ShowCombo(int comboCount)
+        {
+            if (comboFadeCoroutine != null)
+                StopCoroutine(comboFadeCoroutine);
+
+            comboText.gameObject.SetActive(true);
+            comboText.text = comboCount > 1 ? $"PERFECT x{comboCount}" : "PERFECT!";
+            comboFadeCoroutine = StartCoroutine(FadeComboText());
+        }
+
+        private IEnumerator FadeComboText()
+        {
+            Color color = comboText.color;
+            color.a = 1f;
+            comboText.color = color;
+
+            yield return new WaitForSeconds(0.5f);
+
+            float fadeDuration = 0.5f;
+            float elapsed = 0f;
+            while (elapsed < fadeDuration)
+            {
+                elapsed += Time.deltaTime;
+                color.a = 1f - elapsed / fadeDuration;
+                comboText.color = color;
+                yield return null;
+            }
+
+            comboText.gameObject.SetActive(false);
         }
 
         public void UpdateScore(ScoreManager score)

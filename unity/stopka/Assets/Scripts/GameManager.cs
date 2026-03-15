@@ -139,6 +139,8 @@ namespace Stopka
                         currentBlock.Size.y, config.startBlockSize.y,
                         scoreManager.ComboCount, config.comboRecoveryRate));
                 currentBlock.SetSize(recoveredSize);
+                if (gameUI != null)
+                    gameUI.ShowCombo(scoreManager.ComboCount);
             }
             else
             {
