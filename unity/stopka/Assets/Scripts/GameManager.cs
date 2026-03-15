@@ -199,6 +199,9 @@ namespace Stopka
             cutoffRenderer.material.color = blockRenderer.material.color;
 
             AddRigidbodyAndFall(cutoff);
+            // Add slight random torque for visual interest
+            var rb = cutoff.GetComponent<Rigidbody>();
+            rb.AddTorque(Random.insideUnitSphere * 2f, ForceMode.Impulse);
             cutoffPieces.Add(cutoff);
             Destroy(cutoff, 3f); // Clean up after falling
         }
