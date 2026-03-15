@@ -1,7 +1,9 @@
 {
     "name": "Stopka",
     "rootNamespace": "Stopka",
-    "references": [],
+    "references": [
+        "Unity.TextMeshPro"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

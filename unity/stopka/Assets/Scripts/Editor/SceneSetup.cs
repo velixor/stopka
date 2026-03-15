@@ -118,7 +118,7 @@ namespace Stopka.Editor
             {
                 var esObj = new GameObject("EventSystem");
                 esObj.AddComponent<EventSystem>();
-                esObj.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+                esObj.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
             }
 
             // --- Directional Light ---
