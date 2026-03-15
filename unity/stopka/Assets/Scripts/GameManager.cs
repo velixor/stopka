@@ -79,6 +79,7 @@ namespace Stopka
             // Spawn first moving block
             SpawnNextBlock();
             SetState(GameState.Playing);
+            if (audioManager != null) audioManager.StartMusic();
         }
 
         private void CreateFoundation()
@@ -141,6 +142,8 @@ namespace Stopka
                 currentBlock.SetSize(recoveredSize);
                 if (gameUI != null)
                     gameUI.ShowCombo(scoreManager.ComboCount);
+                if (audioManager != null) audioManager.PlayPlace(scoreManager.ComboCount);
+                if (cameraShake != null) cameraShake.Shake(0.05f + scoreManager.ComboCount * 0.02f);
             }
             else
             {
@@ -148,6 +151,7 @@ namespace Stopka
                 currentBlock.ApplySlice(result.NewCenter, result.NewSize);
                 SpawnCutoffPiece(currentBlock, result);
                 scoreManager.AddPlacement(isPerfect: false);
+                if (audioManager != null) audioManager.PlaySlice();
             }
 
             // Update tower state
@@ -226,6 +230,7 @@ namespace Stopka
                 PlayerPrefs.SetInt("HighScore", scoreManager.HighScore);
                 PlayerPrefs.Save();
             }
+            if (audioManager != null) audioManager.PlayGameOver();
             SetState(GameState.GameOver);
         }
 
