@@ -19,7 +19,7 @@ namespace Stopka
         private ScoreManager scoreManager;
         private Block currentBlock;
         private GameState state;
-        private readonly List<GameObject> cutoffPieces = new List<GameObject>();
+        private readonly List<Block> placedBlocks = new List<Block>();
 
         // The foundation block (no slicing on first placement)
         private GameObject foundationBlock;
@@ -162,7 +162,8 @@ namespace Stopka
             if (gameUI != null)
                 gameUI.UpdateScore(scoreManager);
 
-            // Spawn next
+            // Track placed block and spawn next
+            placedBlocks.Add(currentBlock);
             SpawnNextBlock();
         }
 
@@ -208,7 +209,6 @@ namespace Stopka
             // Add slight random torque for visual interest
             var rb = cutoff.GetComponent<Rigidbody>();
             rb.AddTorque(Random.insideUnitSphere * 2f, ForceMode.Impulse);
-            cutoffPieces.Add(cutoff);
             Destroy(cutoff, 3f); // Clean up after falling
         }
 
@@ -231,22 +231,23 @@ namespace Stopka
                 PlayerPrefs.Save();
             }
             if (audioManager != null) audioManager.PlayGameOver();
+            if (gameUI != null) gameUI.SetNewHighScore(isNewHighScore);
             SetState(GameState.GameOver);
         }
 
         private void RestartGame()
         {
-            // Destroy all blocks
-            foreach (var block in FindObjectsByType<Block>(FindObjectsSortMode.None))
-                Destroy(block.gameObject);
-
-            // Destroy tracked cutoff pieces
-            foreach (var cutoff in cutoffPieces)
+            // Destroy all placed blocks
+            foreach (var block in placedBlocks)
             {
-                if (cutoff != null)
-                    Destroy(cutoff);
+                if (block != null)
+                    Destroy(block.gameObject);
             }
-            cutoffPieces.Clear();
+            placedBlocks.Clear();
+
+            // Destroy current sliding block if still alive
+            if (currentBlock != null)
+                Destroy(currentBlock.gameObject);
 
             if (foundationBlock != null)
                 Destroy(foundationBlock);

@@ -21,6 +21,13 @@ namespace Stopka
         [SerializeField] private TextMeshProUGUI highScoreEndText;
         [SerializeField] private GameObject newHighScoreBadge;
 
+        private bool isNewHighScore;
+
+        public void SetNewHighScore(bool value)
+        {
+            isNewHighScore = value;
+        }
+
         public void SetState(GameState state, ScoreManager score)
         {
             startPanel.SetActive(state == GameState.Start);
@@ -38,7 +45,7 @@ namespace Stopka
                 case GameState.GameOver:
                     finalScoreText.text = $"{score.Score}";
                     highScoreEndText.text = $"Best: {score.HighScore}";
-                    newHighScoreBadge.SetActive(score.Score >= score.HighScore && score.Score > 0);
+                    newHighScoreBadge.SetActive(isNewHighScore);
                     break;
             }
         }
