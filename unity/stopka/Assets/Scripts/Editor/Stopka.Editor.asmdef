@@ -1,0 +1,19 @@
+{
+    "name": "Stopka.Editor",
+    "rootNamespace": "Stopka.Editor",
+    "references": [
+        "Stopka",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
