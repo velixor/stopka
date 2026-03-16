@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Stopka
 {
@@ -53,11 +54,14 @@ namespace Stopka
 
         private bool HasTapInput()
         {
-            // Touch or mouse click
-            if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
+            var touch = Touchscreen.current;
+            if (touch != null && touch.primaryTouch.press.wasPressedThisFrame)
                 return true;
-            if (Input.GetMouseButtonDown(0))
+
+            var mouse = Mouse.current;
+            if (mouse != null && mouse.leftButton.wasPressedThisFrame)
                 return true;
+
             return false;
         }
 
