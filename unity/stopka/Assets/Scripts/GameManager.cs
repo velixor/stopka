@@ -226,6 +226,9 @@ namespace Stopka
             var mat = new Material(blockBaseMaterial);
             mat.SetColor("_BaseColor", color);
             renderer.material = mat;
+            // Lit shader for face shading, but no shadows between blocks
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
         }
 
         private void AddRigidbodyAndFall(GameObject go)
