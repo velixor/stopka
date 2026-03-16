@@ -95,7 +95,6 @@ namespace Stopka
 
             foundationBlock = GameObject.CreatePrimitive(PrimitiveType.Cube);
             foundationBlock.name = "Foundation";
-            Destroy(foundationBlock.GetComponent<Collider>());
             foundationBlock.transform.position = Vector3.zero;
             foundationBlock.transform.localScale = new Vector3(
                 config.startBlockSize.x, config.blockHeight, config.startBlockSize.y);
@@ -181,6 +180,7 @@ namespace Stopka
 
             // Track placed block and spawn next
             placedBlocks.Add(currentBlock);
+            currentBlock.gameObject.AddComponent<BoxCollider>();
             SpawnNextBlock();
         }
 
@@ -199,7 +199,6 @@ namespace Stopka
         {
             GameObject cutoff = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cutoff.name = "Cutoff";
-            Destroy(cutoff.GetComponent<Collider>());
 
             Vector3 pos = block.transform.position;
             Vector3 scale = block.transform.localScale;
@@ -223,13 +222,17 @@ namespace Stopka
             var cutoffRenderer = cutoff.GetComponent<Renderer>();
             SetBlockMaterial(cutoffRenderer, blockRenderer.material.GetColor("_BaseColor"));
 
-            // Slide outward in the overhang direction (no physics, no spinning)
+            // Slide outward direction
             Vector3 slideDir = block.Axis == SlideAxis.X
                 ? new Vector3(Mathf.Sign(result.CutCenter - result.NewCenter), 0f, 0f)
                 : new Vector3(0f, 0f, Mathf.Sign(result.CutCenter - result.NewCenter));
 
-            var piece = cutoff.AddComponent<CutoffPiece>();
-            piece.Initialize(slideDir, 1.5f);
+            // Use Rigidbody with frozen rotation for natural-looking fall
+            var rb = cutoff.AddComponent<Rigidbody>();
+            rb.freezeRotation = true;
+            rb.linearVelocity = slideDir * 2f;
+
+            Destroy(cutoff, 3f);
         }
 
         private void SetBlockMaterial(Renderer renderer, Color color)
