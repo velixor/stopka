@@ -233,7 +233,8 @@ namespace Stopka
             rb.freezeRotation = true;
             rb.linearVelocity = slideDir * 2f;
 
-            Destroy(cutoff, 3f);
+            // Only destroy when it falls off-screen, not on a timer
+            cutoff.AddComponent<DestroyWhenFallen>();
         }
 
         private void SetBlockMaterial(Renderer renderer, Color color)
@@ -254,6 +255,7 @@ namespace Stopka
 
             var rb = go.AddComponent<Rigidbody>();
             rb.useGravity = true;
+            go.AddComponent<DestroyWhenFallen>();
         }
 
         private void GameOver()
