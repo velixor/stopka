@@ -27,6 +27,7 @@ namespace Stopka
 
         private void Start()
         {
+            Application.targetFrameRate = 60;
             blockBaseMaterial = Resources.Load<Material>("BlockBase");
             scoreManager = new ScoreManager();
             scoreManager.HighScore = PlayerPrefs.GetInt("HighScore", 0);
