@@ -131,11 +131,15 @@ namespace Stopka
                 return;
             }
 
+            // Track the final size for tower state (may differ from currentBlock.Size if recovery animates)
+            Vector2 finalSize;
+
             if (result.IsPerfect)
             {
                 // Snap to alignment
                 currentBlock.ApplySlice(result.NewCenter, currSize);
                 scoreManager.AddPlacement(isPerfect: true);
+                finalSize = currentBlock.Size;
 
                 // Combo recovery: only after streak threshold, only on slide axis
                 if (scoreManager.ShouldRecover(config.comboRecoveryThreshold))
@@ -156,6 +160,7 @@ namespace Stopka
                             config.comboRecoveryRate);
                     }
                     currentBlock.AnimateSize(recoveredSize);
+                    finalSize = recoveredSize; // use target size, not pre-animation
                 }
                 if (gameUI != null)
                     gameUI.ShowCombo(scoreManager.ComboCount);
@@ -168,11 +173,12 @@ namespace Stopka
                 currentBlock.ApplySlice(result.NewCenter, result.NewSize);
                 SpawnCutoffPiece(currentBlock, result);
                 scoreManager.AddPlacement(isPerfect: false);
+                finalSize = currentBlock.Size;
                 if (audioManager != null) audioManager.PlaySlice();
             }
 
-            // Update tower state
-            tower.PlaceBlock(currentBlock.transform.position, currentBlock.Size);
+            // Update tower state with final size (includes recovery target)
+            tower.PlaceBlock(currentBlock.transform.position, finalSize);
             cameraController.SetTargetHeight(currentBlock.transform.position.y);
 
             // Update UI
