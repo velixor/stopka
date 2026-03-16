@@ -15,9 +15,11 @@ namespace Stopka
 
         [Header("Combo")]
         public float comboRecoveryRate = 0.05f;
+        [Tooltip("Number of consecutive perfects before recovery kicks in")]
+        public int comboRecoveryThreshold = 3;
 
         [Header("Block")]
-        public float blockHeight = 0.2f;
+        public float blockHeight = 0.5f;
         public Vector2 startBlockSize = new Vector2(3f, 3f);
 
         [Header("Spawning")]
