@@ -28,6 +28,15 @@ namespace Stopka
             targetY = height;
         }
 
+        public void ResetToOrigin()
+        {
+            targetY = 0f;
+            currentY = 0f;
+            velocityY = 0f;
+            transform.position = offset;
+            transform.LookAt(Vector3.zero);
+        }
+
         private void LateUpdate()
         {
             currentY = Mathf.SmoothDamp(currentY, targetY, ref velocityY, smoothTime);

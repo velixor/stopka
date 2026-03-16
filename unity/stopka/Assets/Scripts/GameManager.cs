@@ -72,6 +72,7 @@ namespace Stopka
             tower.Initialize();
             spawner.ResetLayer();
             scoreManager.Reset();
+            cameraController.ResetToOrigin();
 
             // Create foundation block (static, sits at origin)
             CreateFoundation();
@@ -95,6 +96,7 @@ namespace Stopka
                 config.startBlockSize.x, config.blockHeight, config.startBlockSize.y);
 
             var renderer = foundationBlock.GetComponent<Renderer>();
+            SetupBlockRenderer(renderer);
             SetMaterialColor(renderer, colorManager.GetColorForLayer(0));
 
             tower.PlaceBlock(Vector3.zero, config.startBlockSize);
@@ -172,9 +174,10 @@ namespace Stopka
             Vector2 size = tower.TopSize;
             currentBlock = spawner.SpawnBlock(tower.TopPosition, size);
 
-            // Apply color
+            // Apply color and disable shadows
             int layer = spawner.CurrentLayer;
             var renderer = currentBlock.GetComponent<Renderer>();
+            SetupBlockRenderer(renderer);
             SetMaterialColor(renderer, colorManager.GetColorForLayer(layer));
         }
 
@@ -182,6 +185,7 @@ namespace Stopka
         {
             GameObject cutoff = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cutoff.name = "Cutoff";
+            Destroy(cutoff.GetComponent<Collider>());
 
             Vector3 pos = block.transform.position;
             Vector3 scale = block.transform.localScale;
@@ -203,18 +207,27 @@ namespace Stopka
             // Copy color from the block
             var blockRenderer = block.GetComponent<Renderer>();
             var cutoffRenderer = cutoff.GetComponent<Renderer>();
+            SetupBlockRenderer(cutoffRenderer);
             SetMaterialColor(cutoffRenderer, blockRenderer.material.GetColor("_BaseColor"));
 
-            AddRigidbodyAndFall(cutoff);
-            // Add slight random torque for visual interest
-            var rb = cutoff.GetComponent<Rigidbody>();
-            rb.AddTorque(Random.insideUnitSphere * 2f, ForceMode.Impulse);
-            Destroy(cutoff, 3f); // Clean up after falling
+            // Slide outward in the overhang direction (no physics, no spinning)
+            Vector3 slideDir = block.Axis == SlideAxis.X
+                ? new Vector3(Mathf.Sign(result.CutCenter - result.NewCenter), 0f, 0f)
+                : new Vector3(0f, 0f, Mathf.Sign(result.CutCenter - result.NewCenter));
+
+            var piece = cutoff.AddComponent<CutoffPiece>();
+            piece.Initialize(slideDir, 1.5f);
         }
 
         private static void SetMaterialColor(Renderer renderer, Color color)
         {
             renderer.material.SetColor("_BaseColor", color);
+        }
+
+        private static void SetupBlockRenderer(Renderer renderer)
+        {
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
         }
 
         private void AddRigidbodyAndFall(GameObject go)
