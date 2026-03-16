@@ -288,6 +288,10 @@ namespace Stopka
             if (currentBlock != null)
                 Destroy(currentBlock.gameObject);
 
+            // Destroy any remaining cutoff/fallen pieces
+            foreach (var piece in FindObjectsByType<DestroyWhenFallen>(FindObjectsSortMode.None))
+                Destroy(piece.gameObject);
+
             if (foundationBlock != null)
                 Destroy(foundationBlock);
 
