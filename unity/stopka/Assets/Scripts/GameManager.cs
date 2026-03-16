@@ -15,6 +15,7 @@ namespace Stopka
         [SerializeField] private GameUI gameUI;
         [SerializeField] private AudioManager audioManager;
         [SerializeField] private CameraShake cameraShake;
+        [SerializeField] private Material blockBaseMaterial;
 
         private ScoreManager scoreManager;
         private Block currentBlock;
@@ -96,8 +97,7 @@ namespace Stopka
                 config.startBlockSize.x, config.blockHeight, config.startBlockSize.y);
 
             var renderer = foundationBlock.GetComponent<Renderer>();
-            SetupBlockRenderer(renderer);
-            SetMaterialColor(renderer, colorManager.GetColorForLayer(0));
+            SetBlockMaterial(renderer, colorManager.GetColorForLayer(0));
 
             tower.PlaceBlock(Vector3.zero, config.startBlockSize);
         }
@@ -177,8 +177,7 @@ namespace Stopka
             // Apply color and disable shadows
             int layer = spawner.CurrentLayer;
             var renderer = currentBlock.GetComponent<Renderer>();
-            SetupBlockRenderer(renderer);
-            SetMaterialColor(renderer, colorManager.GetColorForLayer(layer));
+            SetBlockMaterial(renderer, colorManager.GetColorForLayer(layer));
         }
 
         private void SpawnCutoffPiece(Block block, SliceResult result)
@@ -207,8 +206,7 @@ namespace Stopka
             // Copy color from the block
             var blockRenderer = block.GetComponent<Renderer>();
             var cutoffRenderer = cutoff.GetComponent<Renderer>();
-            SetupBlockRenderer(cutoffRenderer);
-            SetMaterialColor(cutoffRenderer, blockRenderer.material.GetColor("_BaseColor"));
+            SetBlockMaterial(cutoffRenderer, blockRenderer.material.GetColor("_BaseColor"));
 
             // Slide outward in the overhang direction (no physics, no spinning)
             Vector3 slideDir = block.Axis == SlideAxis.X
@@ -219,15 +217,11 @@ namespace Stopka
             piece.Initialize(slideDir, 1.5f);
         }
 
-        private static void SetMaterialColor(Renderer renderer, Color color)
+        private void SetBlockMaterial(Renderer renderer, Color color)
         {
-            renderer.material.SetColor("_BaseColor", color);
-        }
-
-        private static void SetupBlockRenderer(Renderer renderer)
-        {
-            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            renderer.receiveShadows = false;
+            var mat = new Material(blockBaseMaterial);
+            mat.SetColor("_BaseColor", color);
+            renderer.material = mat;
         }
 
         private void AddRigidbodyAndFall(GameObject go)
