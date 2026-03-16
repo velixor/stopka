@@ -265,11 +265,14 @@ namespace Stopka
             }
             if (audioManager != null) audioManager.PlayGameOver();
             if (gameUI != null) gameUI.SetNewHighScore(isNewHighScore);
+            cameraController.ShowFullTower(tower.TopPosition.y);
             SetState(GameState.GameOver);
         }
 
         private void RestartGame()
         {
+            cameraController.StopPullback();
+
             // Destroy all placed blocks
             foreach (var block in placedBlocks)
             {
