@@ -15,8 +15,7 @@ namespace Stopka
         [SerializeField] private GameUI gameUI;
         [SerializeField] private AudioManager audioManager;
         [SerializeField] private CameraShake cameraShake;
-        [SerializeField] private Material blockBaseMaterial;
-
+        private Material blockBaseMaterial;
         private ScoreManager scoreManager;
         private Block currentBlock;
         private GameState state;
@@ -27,6 +26,7 @@ namespace Stopka
 
         private void Start()
         {
+            blockBaseMaterial = Resources.Load<Material>("BlockBase");
             scoreManager = new ScoreManager();
             scoreManager.HighScore = PlayerPrefs.GetInt("HighScore", 0);
             colorManager.Initialize();
