@@ -137,15 +137,26 @@ namespace Stopka
                 currentBlock.ApplySlice(result.NewCenter, currSize);
                 scoreManager.AddPlacement(isPerfect: true);
 
-                // Combo recovery: widen the block
-                Vector2 recoveredSize = new Vector2(
-                    ScoreManager.CalculateRecoveredSize(
-                        currentBlock.Size.x, config.startBlockSize.x,
-                        scoreManager.ComboCount, config.comboRecoveryRate),
-                    ScoreManager.CalculateRecoveredSize(
-                        currentBlock.Size.y, config.startBlockSize.y,
-                        scoreManager.ComboCount, config.comboRecoveryRate));
-                currentBlock.SetSize(recoveredSize);
+                // Combo recovery: only after streak threshold, only on slide axis
+                if (scoreManager.ShouldRecover(config.comboRecoveryThreshold))
+                {
+                    Vector2 recoveredSize = currentBlock.Size;
+                    if (axis == SlideAxis.X)
+                    {
+                        recoveredSize.x = ScoreManager.CalculateRecoveredSize(
+                            currentBlock.Size.x, config.startBlockSize.x,
+                            scoreManager.ComboCount, config.comboRecoveryThreshold,
+                            config.comboRecoveryRate);
+                    }
+                    else
+                    {
+                        recoveredSize.y = ScoreManager.CalculateRecoveredSize(
+                            currentBlock.Size.y, config.startBlockSize.y,
+                            scoreManager.ComboCount, config.comboRecoveryThreshold,
+                            config.comboRecoveryRate);
+                    }
+                    currentBlock.AnimateSize(recoveredSize);
+                }
                 if (gameUI != null)
                     gameUI.ShowCombo(scoreManager.ComboCount);
                 if (audioManager != null) audioManager.PlayPlace(scoreManager.ComboCount);

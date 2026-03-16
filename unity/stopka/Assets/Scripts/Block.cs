@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 namespace Stopka
@@ -86,6 +87,33 @@ namespace Stopka
         {
             Size = newSize;
             transform.localScale = new Vector3(newSize.x, transform.localScale.y, newSize.y);
+        }
+
+        public void AnimateSize(Vector2 targetSize, float duration = 0.15f)
+        {
+            StartCoroutine(AnimateSizeCoroutine(targetSize, duration));
+        }
+
+        private IEnumerator AnimateSizeCoroutine(Vector2 targetSize, float duration)
+        {
+            Vector2 startSize = Size;
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                // Ease out
+                t = 1f - (1f - t) * (1f - t);
+
+                Vector2 current = Vector2.Lerp(startSize, targetSize, t);
+                Size = current;
+                transform.localScale = new Vector3(current.x, transform.localScale.y, current.y);
+                yield return null;
+            }
+
+            Size = targetSize;
+            transform.localScale = new Vector3(targetSize.x, transform.localScale.y, targetSize.y);
         }
     }
 }
