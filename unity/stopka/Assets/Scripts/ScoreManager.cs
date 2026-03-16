@@ -38,10 +38,17 @@ namespace Stopka
             ComboCount = 0;
         }
 
-        public static float CalculateRecoveredSize(
-            float currentSize, float maxSize, int comboCount, float recoveryRate)
+        public bool ShouldRecover(int threshold)
         {
-            return Mathf.Min(currentSize + comboCount * recoveryRate, maxSize);
+            return ComboCount >= threshold;
+        }
+
+        public static float CalculateRecoveredSize(
+            float currentSize, float maxSize, int comboCount, int threshold, float recoveryRate)
+        {
+            int excess = Mathf.Max(0, comboCount - threshold);
+            if (excess == 0) return currentSize;
+            return Mathf.Min(currentSize + excess * recoveryRate, maxSize);
         }
     }
 }

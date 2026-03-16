@@ -91,9 +91,9 @@ namespace Stopka.Tests
             float maxSize = 3f;
             float recoveryRate = 0.05f;
 
-            // After combo 3, recovery = 3 * 0.05 = 0.15
+            // combo=5, threshold=2 → excess=3, recovery = 3 * 0.05 = 0.15
             float recovered = ScoreManager.CalculateRecoveredSize(
-                currentSize, maxSize, comboCount: 3, recoveryRate);
+                currentSize, maxSize, comboCount: 5, threshold: 2, recoveryRate);
 
             Assert.AreEqual(2.15f, recovered, 0.001f);
         }
@@ -105,10 +105,63 @@ namespace Stopka.Tests
             float maxSize = 3f;
             float recoveryRate = 0.05f;
 
+            // combo=7, threshold=2 → excess=5, recovery = 5 * 0.05 = 0.25 → capped at 3f
             float recovered = ScoreManager.CalculateRecoveredSize(
-                currentSize, maxSize, comboCount: 5, recoveryRate);
+                currentSize, maxSize, comboCount: 7, threshold: 2, recoveryRate);
 
             Assert.AreEqual(3f, recovered, 0.001f);
+        }
+
+        [Test]
+        public void ShouldRecover_FalseBeforeThreshold()
+        {
+            score.AddPlacement(isPerfect: true);
+            score.AddPlacement(isPerfect: true);
+            Assert.IsFalse(score.ShouldRecover(threshold: 3));
+        }
+
+        [Test]
+        public void ShouldRecover_TrueAtThreshold()
+        {
+            score.AddPlacement(isPerfect: true);
+            score.AddPlacement(isPerfect: true);
+            score.AddPlacement(isPerfect: true);
+            Assert.IsTrue(score.ShouldRecover(threshold: 3));
+        }
+
+        [Test]
+        public void ShouldRecover_TrueAboveThreshold()
+        {
+            for (int i = 0; i < 5; i++)
+                score.AddPlacement(isPerfect: true);
+            Assert.IsTrue(score.ShouldRecover(threshold: 3));
+        }
+
+        [Test]
+        public void ComboRecovery_UsesExcessOverThreshold()
+        {
+            float currentSize = 2f;
+            float maxSize = 3f;
+            float recoveryRate = 0.05f;
+
+            // combo=5, threshold=3 → excess=2, recovery = 2 * 0.05 = 0.10
+            float recovered = ScoreManager.CalculateRecoveredSize(
+                currentSize, maxSize, comboCount: 5, threshold: 3, recoveryRate);
+
+            Assert.AreEqual(2.10f, recovered, 0.001f);
+        }
+
+        [Test]
+        public void ComboRecovery_ZeroWhenBelowThreshold()
+        {
+            float currentSize = 2f;
+            float maxSize = 3f;
+            float recoveryRate = 0.05f;
+
+            float recovered = ScoreManager.CalculateRecoveredSize(
+                currentSize, maxSize, comboCount: 2, threshold: 3, recoveryRate);
+
+            Assert.AreEqual(2f, recovered, 0.001f);
         }
     }
 }
