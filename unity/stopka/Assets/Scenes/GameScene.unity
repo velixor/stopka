@@ -1359,8 +1359,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6c91f8288e5f466ca0822994a2cbb0e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Stopka::Stopka.BlockColorManager
-  hueStep: 0.03
-  saturation: 0.6
+  hueStep: 0.08
+  saturation: 0.7
   value: 0.9
 --- !u!114 &1147441228
 MonoBehaviour:
