@@ -95,7 +95,7 @@ namespace Stopka
                 config.startBlockSize.x, config.blockHeight, config.startBlockSize.y);
 
             var renderer = foundationBlock.GetComponent<Renderer>();
-            renderer.material.color = colorManager.GetColorForLayer(0);
+            SetMaterialColor(renderer, colorManager.GetColorForLayer(0));
 
             tower.PlaceBlock(Vector3.zero, config.startBlockSize);
         }
@@ -175,7 +175,7 @@ namespace Stopka
             // Apply color
             int layer = spawner.CurrentLayer;
             var renderer = currentBlock.GetComponent<Renderer>();
-            renderer.material.color = colorManager.GetColorForLayer(layer);
+            SetMaterialColor(renderer, colorManager.GetColorForLayer(layer));
         }
 
         private void SpawnCutoffPiece(Block block, SliceResult result)
@@ -203,13 +203,18 @@ namespace Stopka
             // Copy color from the block
             var blockRenderer = block.GetComponent<Renderer>();
             var cutoffRenderer = cutoff.GetComponent<Renderer>();
-            cutoffRenderer.material.color = blockRenderer.material.color;
+            SetMaterialColor(cutoffRenderer, blockRenderer.material.GetColor("_BaseColor"));
 
             AddRigidbodyAndFall(cutoff);
             // Add slight random torque for visual interest
             var rb = cutoff.GetComponent<Rigidbody>();
             rb.AddTorque(Random.insideUnitSphere * 2f, ForceMode.Impulse);
             Destroy(cutoff, 3f); // Clean up after falling
+        }
+
+        private static void SetMaterialColor(Renderer renderer, Color color)
+        {
+            renderer.material.SetColor("_BaseColor", color);
         }
 
         private void AddRigidbodyAndFall(GameObject go)
