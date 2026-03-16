@@ -629,7 +629,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
-    m_Type: 2
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -1397,7 +1397,6 @@ MonoBehaviour:
   gameUI: {fileID: 1147441225}
   audioManager: {fileID: 1147441226}
   cameraShake: {fileID: 1051983363}
-  blockBaseMaterial: {fileID: 2100000, guid: d7bc2b79fd0b64f269cc0785f54a6afe, type: 2}
 --- !u!4 &1147441231
 Transform:
   m_ObjectHideFlags: 0
