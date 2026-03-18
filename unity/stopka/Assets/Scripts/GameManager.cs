@@ -137,41 +137,46 @@ namespace Stopka
 
             if (result.IsPerfect)
             {
-                // Snap to alignment
-                currentBlock.ApplySlice(result.NewCenter, currSize);
                 scoreManager.AddPlacement(isPerfect: true);
-                finalSize = currentBlock.Size;
-                finalPosition = currentBlock.transform.position;
+
+                // Compute snap position (align to previous block center on slide axis)
+                Vector3 snapPos = currentBlock.transform.position;
+                if (axis == SlideAxis.X)
+                    snapPos.x = result.NewCenter;
+                else
+                    snapPos.z = result.NewCenter;
+
+                // Start with current size (perfect = no cut)
+                Vector2 targetSize = currentBlock.Size;
+                Vector3 targetPos = snapPos;
 
                 // Combo recovery: after streak threshold, random axis, clamped to foundation bounds
                 if (scoreManager.ShouldRecover(config.comboRecoveryThreshold))
                 {
-                    Vector2 recoveredSize = currentBlock.Size;
                     bool recoverX = Random.value < 0.5f;
 
                     if (recoverX)
                     {
-                        recoveredSize.x = ScoreManager.CalculateRecoveredSize(
+                        targetSize.x = ScoreManager.CalculateRecoveredSize(
                             currentBlock.Size.x, config.startBlockSize.x,
                             scoreManager.ComboCount, config.comboRecoveryThreshold,
                             config.comboRecoveryRate, config.recoveryRandomMin, config.recoveryRandomMax);
                     }
                     else
                     {
-                        recoveredSize.y = ScoreManager.CalculateRecoveredSize(
+                        targetSize.y = ScoreManager.CalculateRecoveredSize(
                             currentBlock.Size.y, config.startBlockSize.y,
                             scoreManager.ComboCount, config.comboRecoveryThreshold,
                             config.comboRecoveryRate, config.recoveryRandomMin, config.recoveryRandomMax);
                     }
 
-                    // Clamp to foundation bounds (foundation is always at origin)
-                    Vector3 newPos = currentBlock.transform.position;
-                    newPos = ClampToFoundation(newPos, recoveredSize);
-
-                    currentBlock.AnimateSize(recoveredSize, newPos);
-                    finalSize = recoveredSize;
-                    finalPosition = newPos;
+                    targetPos = ClampToFoundation(snapPos, targetSize);
                 }
+
+                // Single animation: snap to alignment + optional recovery
+                currentBlock.AnimateSize(targetSize, targetPos);
+                finalSize = targetSize;
+                finalPosition = targetPos;
                 if (gameUI != null)
                     gameUI.ShowCombo(scoreManager.ComboCount);
                 if (audioManager != null) audioManager.PlayPlace(scoreManager.ComboCount);
