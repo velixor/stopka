@@ -17,6 +17,9 @@ namespace Stopka
         public float comboRecoveryRate = 0.05f;
         [Tooltip("Number of consecutive perfects before recovery kicks in")]
         public int comboRecoveryThreshold = 3;
+        [Tooltip("Recovery rate random multiplier range")]
+        public float recoveryRandomMin = 0.5f;
+        public float recoveryRandomMax = 1.5f;
 
         [Header("Block")]
         public float blockHeight = 0.5f;

@@ -89,14 +89,16 @@ namespace Stopka
             transform.localScale = new Vector3(newSize.x, transform.localScale.y, newSize.y);
         }
 
-        public void AnimateSize(Vector2 targetSize, float duration = 0.15f)
+        public void AnimateSize(Vector2 targetSize, Vector3? targetPosition = null, float duration = 0.15f)
         {
-            StartCoroutine(AnimateSizeCoroutine(targetSize, duration));
+            StartCoroutine(AnimateSizeCoroutine(targetSize, targetPosition, duration));
         }
 
-        private IEnumerator AnimateSizeCoroutine(Vector2 targetSize, float duration)
+        private IEnumerator AnimateSizeCoroutine(Vector2 targetSize, Vector3? targetPosition, float duration)
         {
             Vector2 startSize = Size;
+            Vector3 startPos = transform.position;
+            Vector3 endPos = targetPosition ?? startPos;
             float elapsed = 0f;
 
             while (elapsed < duration)
@@ -109,11 +111,13 @@ namespace Stopka
                 Vector2 current = Vector2.Lerp(startSize, targetSize, t);
                 Size = current;
                 transform.localScale = new Vector3(current.x, transform.localScale.y, current.y);
+                transform.position = Vector3.Lerp(startPos, endPos, t);
                 yield return null;
             }
 
             Size = targetSize;
             transform.localScale = new Vector3(targetSize.x, transform.localScale.y, targetSize.y);
+            transform.position = endPos;
         }
     }
 }

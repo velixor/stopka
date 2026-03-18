@@ -44,11 +44,13 @@ namespace Stopka
         }
 
         public static float CalculateRecoveredSize(
-            float currentSize, float maxSize, int comboCount, int threshold, float recoveryRate)
+            float currentSize, float maxSize, int comboCount, int threshold,
+            float recoveryRate, float randomMin = 1f, float randomMax = 1f)
         {
             int excess = Mathf.Max(0, comboCount - threshold);
             if (excess == 0) return currentSize;
-            return Mathf.Min(currentSize + excess * recoveryRate, maxSize);
+            float randomMultiplier = Random.Range(randomMin, randomMax);
+            return Mathf.Min(currentSize + excess * recoveryRate * randomMultiplier, maxSize);
         }
     }
 }

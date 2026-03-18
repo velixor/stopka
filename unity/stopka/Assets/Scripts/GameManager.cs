@@ -131,8 +131,9 @@ namespace Stopka
                 return;
             }
 
-            // Track the final size for tower state (may differ from currentBlock.Size if recovery animates)
+            // Track the final size/position for tower state (may differ if recovery animates)
             Vector2 finalSize;
+            Vector3 finalPosition;
 
             if (result.IsPerfect)
             {
@@ -140,27 +141,36 @@ namespace Stopka
                 currentBlock.ApplySlice(result.NewCenter, currSize);
                 scoreManager.AddPlacement(isPerfect: true);
                 finalSize = currentBlock.Size;
+                finalPosition = currentBlock.transform.position;
 
-                // Combo recovery: only after streak threshold, only on slide axis
+                // Combo recovery: after streak threshold, random axis, clamped to foundation bounds
                 if (scoreManager.ShouldRecover(config.comboRecoveryThreshold))
                 {
                     Vector2 recoveredSize = currentBlock.Size;
-                    if (axis == SlideAxis.X)
+                    bool recoverX = Random.value < 0.5f;
+
+                    if (recoverX)
                     {
                         recoveredSize.x = ScoreManager.CalculateRecoveredSize(
                             currentBlock.Size.x, config.startBlockSize.x,
                             scoreManager.ComboCount, config.comboRecoveryThreshold,
-                            config.comboRecoveryRate);
+                            config.comboRecoveryRate, config.recoveryRandomMin, config.recoveryRandomMax);
                     }
                     else
                     {
                         recoveredSize.y = ScoreManager.CalculateRecoveredSize(
                             currentBlock.Size.y, config.startBlockSize.y,
                             scoreManager.ComboCount, config.comboRecoveryThreshold,
-                            config.comboRecoveryRate);
+                            config.comboRecoveryRate, config.recoveryRandomMin, config.recoveryRandomMax);
                     }
-                    currentBlock.AnimateSize(recoveredSize);
-                    finalSize = recoveredSize; // use target size, not pre-animation
+
+                    // Clamp to foundation bounds (foundation is always at origin)
+                    Vector3 newPos = currentBlock.transform.position;
+                    newPos = ClampToFoundation(newPos, recoveredSize);
+
+                    currentBlock.AnimateSize(recoveredSize, newPos);
+                    finalSize = recoveredSize;
+                    finalPosition = newPos;
                 }
                 if (gameUI != null)
                     gameUI.ShowCombo(scoreManager.ComboCount);
@@ -174,11 +184,12 @@ namespace Stopka
                 SpawnCutoffPiece(currentBlock, result);
                 scoreManager.AddPlacement(isPerfect: false);
                 finalSize = currentBlock.Size;
+                finalPosition = currentBlock.transform.position;
                 if (audioManager != null) audioManager.PlaySlice();
             }
 
-            // Update tower state with final size (includes recovery target)
-            tower.PlaceBlock(currentBlock.transform.position, finalSize);
+            // Update tower state with final size/position (includes recovery target)
+            tower.PlaceBlock(finalPosition, finalSize);
             cameraController.SetTargetHeight(currentBlock.transform.position.y);
 
             // Update UI
@@ -241,6 +252,21 @@ namespace Stopka
 
             // Only destroy when it falls off-screen, not on a timer
             cutoff.AddComponent<DestroyWhenFallen>();
+        }
+
+        /// <summary>Clamp block position so it stays within foundation bounds after recovery.</summary>
+        private Vector3 ClampToFoundation(Vector3 pos, Vector2 blockSize)
+        {
+            float foundHalfX = config.startBlockSize.x / 2f;
+            float foundHalfZ = config.startBlockSize.y / 2f;
+            float blockHalfX = blockSize.x / 2f;
+            float blockHalfZ = blockSize.y / 2f;
+
+            // Shift center so block doesn't exceed foundation edges
+            pos.x = Mathf.Clamp(pos.x, -foundHalfX + blockHalfX, foundHalfX - blockHalfX);
+            pos.z = Mathf.Clamp(pos.z, -foundHalfZ + blockHalfZ, foundHalfZ - blockHalfZ);
+
+            return pos;
         }
 
         private void SetBlockMaterial(Renderer renderer, Color color)
