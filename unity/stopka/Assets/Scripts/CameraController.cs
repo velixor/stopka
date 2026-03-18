@@ -15,6 +15,9 @@ namespace Stopka
         private Camera cam;
         private float baseHue;
         private float pullbackTargetY;
+        private float targetOrthoSize;
+        private float baseOrthoSize;
+        private float orthoSizeVelocity;
         private bool isPullingBack;
 
         private void Start()
@@ -24,6 +27,7 @@ namespace Stopka
             transform.LookAt(Vector3.zero);
             baseHue = Random.Range(0f, 1f);
             cam = GetComponent<Camera>();
+            baseOrthoSize = cam != null ? cam.orthographicSize : 5f;
         }
 
         public void SetTargetHeight(float height)
@@ -33,7 +37,10 @@ namespace Stopka
 
         public void ShowFullTower(float towerHeight)
         {
-            pullbackTargetY = towerHeight / 2f;
+            // Fit full tower in 3/4 of screen height: visibleHeight = 2 * orthoSize
+            targetOrthoSize = Mathf.Max(baseOrthoSize, towerHeight / 1.5f);
+            // Position camera so tower base sits near the bottom of the screen (~15% from edge)
+            pullbackTargetY = targetOrthoSize * 0.85f;
             isPullingBack = true;
         }
 
@@ -48,6 +55,8 @@ namespace Stopka
             currentY = 0f;
             velocityY = 0f;
             isPullingBack = false;
+            orthoSizeVelocity = 0f;
+            if (cam != null) cam.orthographicSize = baseOrthoSize;
             transform.position = offset;
             transform.LookAt(Vector3.zero);
         }
@@ -58,11 +67,15 @@ namespace Stopka
             currentY = Mathf.SmoothDamp(currentY, target, ref velocityY,
                 isPullingBack ? pullbackSmoothTime : smoothTime);
 
-            float extraDistance = isPullingBack ? targetY * 0.3f : 0f;
-            Vector3 camOffset = offset + new Vector3(extraDistance, extraDistance, extraDistance);
-
-            transform.position = new Vector3(camOffset.x, currentY + camOffset.y, camOffset.z);
+            transform.position = new Vector3(offset.x, currentY + offset.y, offset.z);
             transform.LookAt(new Vector3(0f, currentY, 0f));
+
+            if (isPullingBack && cam != null)
+            {
+                cam.orthographicSize = Mathf.SmoothDamp(
+                    cam.orthographicSize, targetOrthoSize,
+                    ref orthoSizeVelocity, pullbackSmoothTime);
+            }
 
             if (cam != null)
             {
