@@ -1,0 +1,5 @@
+- start color change when perfect set
+- allow destroy builded stack
+- change speed 
+- change background while playing
+- 

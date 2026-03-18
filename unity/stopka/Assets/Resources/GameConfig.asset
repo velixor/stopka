@@ -15,8 +15,9 @@ MonoBehaviour:
   startSpeed: 3
   speedIncrement: 0.05
   maxSpeed: 8
-  perfectTolerance: 0.1
+  perfectTolerance: 1
   comboRecoveryRate: 0.05
+  comboRecoveryThreshold: 3
   blockHeight: 0.2
   startBlockSize: {x: 3, y: 3}
   slideRange: 5
