@@ -16,6 +16,7 @@ namespace Stopka
         [SerializeField] private GameUI gameUI;
         [SerializeField] private AudioManager audioManager;
         [SerializeField] private CameraShake cameraShake;
+        [SerializeField] private DistortionWaveController distortionWave;
         private Material blockBaseMaterial;
         private ScoreManager scoreManager;
         private Block currentBlock;
@@ -181,6 +182,14 @@ namespace Stopka
                     gameUI.ShowCombo(scoreManager.ComboCount);
                 if (audioManager != null) audioManager.PlayPlace(scoreManager.ComboCount);
                 if (cameraShake != null) cameraShake.Shake(0.05f + scoreManager.ComboCount * 0.02f);
+
+                // Pulse glow on the placed block
+                var pulse = currentBlock.gameObject.AddComponent<BlockPulse>();
+                pulse.Pulse(colorManager.GetColorForLayer(spawner.CurrentLayer - 1));
+
+                // Distortion wave on 3+ combo
+                if (scoreManager.ComboCount >= config.comboRecoveryThreshold && distortionWave != null)
+                    distortionWave.TriggerWave(currentBlock.transform.position, Camera.main);
             }
             else
             {

@@ -1,6 +1,8 @@
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
+using UnityEngine.Rendering.Universal;
 using TMPro;
 
 namespace Stopka.Editor
@@ -10,13 +12,31 @@ namespace Stopka.Editor
         [MenuItem("Stopka/Setup Game Scene")]
         public static void SetupGameScene()
         {
-            // --- Create GameConfig asset ---
+            // --- Clean up existing scene objects ---
+            foreach (var oldGm in Object.FindObjectsByType<GameManager>(FindObjectsSortMode.None))
+                Object.DestroyImmediate(oldGm.gameObject);
+            foreach (var oldEs in Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None))
+                Object.DestroyImmediate(oldEs.gameObject);
+            foreach (var oldCanvas in Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None))
+                Object.DestroyImmediate(oldCanvas.gameObject);
+            // Destroy camera components but keep the camera object
+            if (Camera.main != null)
+            {
+                foreach (var comp in Camera.main.GetComponentsInChildren<MonoBehaviour>())
+                    Object.DestroyImmediate(comp);
+            }
+
+            // --- Create/load GameConfig asset ---
             if (!AssetDatabase.IsValidFolder("Assets/Resources"))
                 AssetDatabase.CreateFolder("Assets", "Resources");
 
-            var config = ScriptableObject.CreateInstance<GameConfig>();
-            AssetDatabase.CreateAsset(config, "Assets/Resources/GameConfig.asset");
-            AssetDatabase.SaveAssets();
+            var config = AssetDatabase.LoadAssetAtPath<GameConfig>("Assets/Resources/GameConfig.asset");
+            if (config == null)
+            {
+                config = ScriptableObject.CreateInstance<GameConfig>();
+                AssetDatabase.CreateAsset(config, "Assets/Resources/GameConfig.asset");
+                AssetDatabase.SaveAssets();
+            }
 
             // --- GameManager object (holds multiple components) ---
             var gmObj = new GameObject("GameManager");
@@ -34,13 +54,83 @@ namespace Stopka.Editor
             var camObj = Camera.main != null ? Camera.main.gameObject : new GameObject("Main Camera");
             camObj.tag = "MainCamera";
             var cam = camObj.GetComponent<Camera>() ?? camObj.AddComponent<Camera>();
-            cam.clearFlags = CameraClearFlags.SolidColor;
-            cam.backgroundColor = HexColor("1a1a2e");
+            cam.clearFlags = CameraClearFlags.Skybox;
             cam.fieldOfView = 60f;
+
+            // --- Gradient Skybox ---
+            var skyboxMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Resources/GradientSkybox.mat");
+            if (skyboxMat == null)
+            {
+                skyboxMat = new Material(Shader.Find("Stopka/GradientSkybox"));
+                AssetDatabase.CreateAsset(skyboxMat, "Assets/Resources/GradientSkybox.mat");
+            }
+            RenderSettings.skybox = skyboxMat;
             camObj.transform.position = new Vector3(5f, 5f, 5f);
             camObj.transform.LookAt(Vector3.zero);
 
             var camCtrl = camObj.AddComponent<CameraController>();
+
+            // Skybox controller
+            var skyboxCtrl = camObj.AddComponent<SkyboxController>();
+            WireField(skyboxCtrl, "skyboxMaterial", skyboxMat);
+            WireField(camCtrl, "skyboxController", skyboxCtrl);
+
+            // --- Distortion Wave ---
+            var waveMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Resources/DistortionWave.mat");
+            if (waveMat == null)
+            {
+                waveMat = new Material(Shader.Find("Stopka/DistortionWave"));
+                waveMat.SetFloat("_WaveStrength", 0f);
+                AssetDatabase.CreateAsset(waveMat, "Assets/Resources/DistortionWave.mat");
+            }
+
+            var waveCtrl = camObj.AddComponent<DistortionWaveController>();
+            WireField(waveCtrl, "waveMaterial", waveMat);
+
+            // Add DistortionWaveFeature to Mobile_Renderer (if not already present)
+            var rendererData = AssetDatabase.LoadAssetAtPath<ScriptableRendererData>("Assets/Settings/Mobile_Renderer.asset");
+            if (rendererData != null)
+            {
+                // Check if feature already exists
+                bool hasFeature = false;
+                foreach (var f in rendererData.rendererFeatures)
+                {
+                    if (f is DistortionWaveFeature)
+                    {
+                        hasFeature = true;
+                        // Update material reference
+                        ((DistortionWaveFeature)f).material = waveMat;
+                        EditorUtility.SetDirty(f);
+                        break;
+                    }
+                }
+
+                if (!hasFeature)
+                {
+                    var feature = ScriptableObject.CreateInstance<DistortionWaveFeature>();
+                    feature.name = "DistortionWaveFeature";
+                    feature.material = waveMat;
+                    AssetDatabase.AddObjectToAsset(feature, rendererData);
+
+                    var so = new SerializedObject(rendererData);
+                    var featuresProp = so.FindProperty("m_RendererFeatures");
+                    featuresProp.arraySize++;
+                    featuresProp.GetArrayElementAtIndex(featuresProp.arraySize - 1).objectReferenceValue = feature;
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                }
+
+                // Set IntermediateTextureMode to Always (required for blit pass)
+                var rendererSo = new SerializedObject(rendererData);
+                var intermediateTexProp = rendererSo.FindProperty("m_IntermediateTextureMode");
+                if (intermediateTexProp != null && intermediateTexProp.intValue != 1)
+                {
+                    intermediateTexProp.intValue = 1;
+                    rendererSo.ApplyModifiedPropertiesWithoutUndo();
+                }
+
+                EditorUtility.SetDirty(rendererData);
+                AssetDatabase.SaveAssets();
+            }
 
             // ShakeTarget child
             var shakeObj = new GameObject("ShakeTarget");
@@ -112,13 +202,14 @@ namespace Stopka.Editor
             WireField(gm, "gameUI", gameUI);
             WireField(gm, "audioManager", audioMgr);
             WireField(gm, "cameraShake", shake);
+            WireField(gm, "distortionWave", waveCtrl);
 
             // --- EventSystem ---
             if (Object.FindAnyObjectByType<EventSystem>() == null)
             {
                 var esObj = new GameObject("EventSystem");
                 esObj.AddComponent<EventSystem>();
-                esObj.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+                esObj.AddComponent<InputSystemUIInputModule>();
             }
 
             // --- Directional Light ---

@@ -6,14 +6,13 @@ namespace Stopka
     {
         [SerializeField] private float smoothTime = 0.5f;
         [SerializeField] private Vector3 offset = new Vector3(5f, 5f, 5f);
-        [SerializeField] private float colorShiftSpeed = 0.01f;
+        [SerializeField] private SkyboxController skyboxController;
         [SerializeField] private float pullbackSmoothTime = 1f;
 
         private float targetY;
         private float currentY;
         private float velocityY;
         private Camera cam;
-        private float baseHue;
         private float pullbackTargetY;
         private float targetOrthoSize;
         private float baseOrthoSize;
@@ -25,7 +24,6 @@ namespace Stopka
             targetY = 0f;
             transform.position = offset;
             transform.LookAt(Vector3.zero);
-            baseHue = Random.Range(0f, 1f);
             cam = GetComponent<Camera>();
             baseOrthoSize = cam != null ? cam.orthographicSize : 5f;
         }
@@ -77,11 +75,8 @@ namespace Stopka
                     ref orthoSizeVelocity, pullbackSmoothTime);
             }
 
-            if (cam != null)
-            {
-                float hue = (baseHue + targetY * colorShiftSpeed) % 1f;
-                cam.backgroundColor = Color.HSVToRGB(hue, 0.3f, 0.15f);
-            }
+            if (skyboxController != null)
+                skyboxController.UpdateForHeight(targetY);
         }
     }
 }

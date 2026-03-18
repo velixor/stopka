@@ -3,7 +3,11 @@
     "rootNamespace": "Stopka.Editor",
     "references": [
         "Stopka",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.Universal.Editor",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [
         "Editor"
