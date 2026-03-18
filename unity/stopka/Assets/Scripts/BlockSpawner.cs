@@ -8,6 +8,7 @@ namespace Stopka
         [SerializeField] private Material blockMaterial;
 
         private int currentLayer;
+        private SpeedController speedController;
 
         public Block SpawnBlock(Vector3 basePosition, Vector2 currentSize)
         {
@@ -20,7 +21,8 @@ namespace Stopka
             Block block = go.AddComponent<Block>();
 
             SlideAxis axis = currentLayer % 2 == 0 ? SlideAxis.X : SlideAxis.Z;
-            float speed = config.GetSpeedForLayer(currentLayer);
+            speedController ??= new SpeedController(config);
+            float speed = speedController.GetNextSpeed();
             float height = config.blockHeight;
 
             // Position: centered on basePosition, at correct height
@@ -46,6 +48,7 @@ namespace Stopka
         public void ResetLayer()
         {
             currentLayer = 0;
+            speedController?.Reset();
         }
     }
 }

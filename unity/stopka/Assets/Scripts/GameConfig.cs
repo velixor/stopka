@@ -9,6 +9,9 @@ namespace Stopka
         public float startSpeed = 3f;
         public float speedIncrement = 0.05f;
         public float maxSpeed = 8f;
+        public SpeedStrategy speedStrategy = SpeedStrategy.Accelerating;
+        [Tooltip("How much speedIncrement grows per cycle (Accelerating strategy)")]
+        public float speedAcceleration = 0.5f;
 
         [Header("Placement")]
         public float perfectTolerance = 0.1f;
@@ -29,9 +32,5 @@ namespace Stopka
         [Tooltip("How far off-screen the block starts sliding from")]
         public float slideRange = 5f;
 
-        public float GetSpeedForLayer(int layer)
-        {
-            return Mathf.Min(startSpeed + speedIncrement * layer, maxSpeed);
-        }
     }
 }
