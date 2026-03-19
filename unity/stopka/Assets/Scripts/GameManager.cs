@@ -16,7 +16,7 @@ namespace Stopka
         [SerializeField] private GameUI gameUI;
         [SerializeField] private AudioManager audioManager;
         [SerializeField] private CameraShake cameraShake;
-        [SerializeField] private DistortionWaveController distortionWave;
+        [SerializeField] private TowerWaveController towerWave;
         private Material blockBaseMaterial;
         private ScoreManager scoreManager;
         private Block currentBlock;
@@ -185,11 +185,11 @@ namespace Stopka
 
                 // Pulse glow on the placed block
                 var pulse = currentBlock.gameObject.AddComponent<BlockPulse>();
-                pulse.Pulse(colorManager.GetColorForLayer(spawner.CurrentLayer - 1));
+                pulse.Pulse(colorManager.GetColorForLayer(spawner.CurrentLayer - 1), config.pulseIntensity, config.pulseDuration);
 
-                // Distortion wave on 3+ combo
-                if (scoreManager.ComboCount >= config.comboRecoveryThreshold && distortionWave != null)
-                    distortionWave.TriggerWave(currentBlock.transform.position, Camera.main);
+                // Tower glow wave on 3+ combo
+                if (scoreManager.ComboCount >= config.comboRecoveryThreshold && towerWave != null)
+                    towerWave.TriggerWave(placedBlocks, foundationBlock, colorManager, spawner.CurrentLayer);
             }
             else
             {

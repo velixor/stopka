@@ -5,7 +5,7 @@ namespace Stopka
     public class SkyboxController : MonoBehaviour
     {
         [SerializeField] private Material skyboxMaterial;
-        [SerializeField] private float maxHeight = 50f;
+        [SerializeField] private GameConfig config;
 
         private Material runtimeMaterial;
 
@@ -58,7 +58,7 @@ namespace Stopka
                 RenderSettings.skybox = runtimeMaterial;
             }
 
-            float progress = Mathf.Clamp01(height / maxHeight);
+            float progress = Mathf.Clamp01(height / config.skyboxMaxHeight);
 
             // Map progress to palette index (cycle through 4 palettes)
             float scaledProgress = progress * (Palettes.Length - 1);

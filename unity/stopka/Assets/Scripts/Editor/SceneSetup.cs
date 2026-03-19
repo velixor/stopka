@@ -19,10 +19,13 @@ namespace Stopka.Editor
                 Object.DestroyImmediate(oldEs.gameObject);
             foreach (var oldCanvas in Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None))
                 Object.DestroyImmediate(oldCanvas.gameObject);
-            // Destroy camera components but keep the camera object
+            // Clean camera: destroy children and custom components, keep Camera + Transform
             if (Camera.main != null)
             {
-                foreach (var comp in Camera.main.GetComponentsInChildren<MonoBehaviour>())
+                var camTransform = Camera.main.transform;
+                for (int i = camTransform.childCount - 1; i >= 0; i--)
+                    Object.DestroyImmediate(camTransform.GetChild(i).gameObject);
+                foreach (var comp in Camera.main.GetComponents<MonoBehaviour>())
                     Object.DestroyImmediate(comp);
             }
 
@@ -36,6 +39,15 @@ namespace Stopka.Editor
                 config = ScriptableObject.CreateInstance<GameConfig>();
                 AssetDatabase.CreateAsset(config, "Assets/Resources/GameConfig.asset");
                 AssetDatabase.SaveAssets();
+            }
+
+            // --- Switch BlockBase material to BlockWave shader ---
+            var blockBaseMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Resources/BlockBase.mat");
+            var blockWaveShader = Shader.Find("Stopka/BlockWave");
+            if (blockBaseMat != null && blockWaveShader != null)
+            {
+                blockBaseMat.shader = blockWaveShader;
+                EditorUtility.SetDirty(blockBaseMat);
             }
 
             // --- GameManager object (holds multiple components) ---
@@ -73,64 +85,47 @@ namespace Stopka.Editor
             // Skybox controller
             var skyboxCtrl = camObj.AddComponent<SkyboxController>();
             WireField(skyboxCtrl, "skyboxMaterial", skyboxMat);
+            WireField(skyboxCtrl, "config", config);
             WireField(camCtrl, "skyboxController", skyboxCtrl);
 
-            // --- Distortion Wave ---
-            var waveMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Resources/DistortionWave.mat");
-            if (waveMat == null)
-            {
-                waveMat = new Material(Shader.Find("Stopka/DistortionWave"));
-                waveMat.SetFloat("_WaveStrength", 0f);
-                AssetDatabase.CreateAsset(waveMat, "Assets/Resources/DistortionWave.mat");
-            }
-
-            var waveCtrl = camObj.AddComponent<DistortionWaveController>();
-            WireField(waveCtrl, "waveMaterial", waveMat);
-
-            // Add DistortionWaveFeature to Mobile_Renderer (if not already present)
+            // --- Clean up old DistortionWaveFeature from Mobile_Renderer if present ---
             var rendererData = AssetDatabase.LoadAssetAtPath<ScriptableRendererData>("Assets/Settings/Mobile_Renderer.asset");
             if (rendererData != null)
             {
-                // Check if feature already exists
-                bool hasFeature = false;
-                foreach (var f in rendererData.rendererFeatures)
+                var so = new SerializedObject(rendererData);
+                var featuresProp = so.FindProperty("m_RendererFeatures");
+                bool changed = false;
+
+                // Remove any null or DistortionWaveFeature entries
+                for (int i = featuresProp.arraySize - 1; i >= 0; i--)
                 {
-                    if (f is DistortionWaveFeature)
+                    var element = featuresProp.GetArrayElementAtIndex(i);
+                    if (element.objectReferenceValue == null)
                     {
-                        hasFeature = true;
-                        // Update material reference
-                        ((DistortionWaveFeature)f).material = waveMat;
-                        EditorUtility.SetDirty(f);
-                        break;
+                        featuresProp.DeleteArrayElementAtIndex(i);
+                        changed = true;
                     }
                 }
 
-                if (!hasFeature)
+                // Revert IntermediateTextureMode to Auto (no longer needed)
+                var intermediateTexProp = so.FindProperty("m_IntermediateTextureMode");
+                if (intermediateTexProp != null && intermediateTexProp.intValue != 0)
                 {
-                    var feature = ScriptableObject.CreateInstance<DistortionWaveFeature>();
-                    feature.name = "DistortionWaveFeature";
-                    feature.material = waveMat;
-                    AssetDatabase.AddObjectToAsset(feature, rendererData);
+                    intermediateTexProp.intValue = 0;
+                    changed = true;
+                }
 
-                    var so = new SerializedObject(rendererData);
-                    var featuresProp = so.FindProperty("m_RendererFeatures");
-                    featuresProp.arraySize++;
-                    featuresProp.GetArrayElementAtIndex(featuresProp.arraySize - 1).objectReferenceValue = feature;
+                if (changed)
+                {
                     so.ApplyModifiedPropertiesWithoutUndo();
+                    EditorUtility.SetDirty(rendererData);
+                    AssetDatabase.SaveAssets();
                 }
-
-                // Set IntermediateTextureMode to Always (required for blit pass)
-                var rendererSo = new SerializedObject(rendererData);
-                var intermediateTexProp = rendererSo.FindProperty("m_IntermediateTextureMode");
-                if (intermediateTexProp != null && intermediateTexProp.intValue != 1)
-                {
-                    intermediateTexProp.intValue = 1;
-                    rendererSo.ApplyModifiedPropertiesWithoutUndo();
-                }
-
-                EditorUtility.SetDirty(rendererData);
-                AssetDatabase.SaveAssets();
             }
+
+            // --- Tower Wave Controller (on GameManager object) ---
+            var towerWave = gmObj.AddComponent<TowerWaveController>();
+            WireField(towerWave, "config", config);
 
             // ShakeTarget child
             var shakeObj = new GameObject("ShakeTarget");
@@ -202,7 +197,7 @@ namespace Stopka.Editor
             WireField(gm, "gameUI", gameUI);
             WireField(gm, "audioManager", audioMgr);
             WireField(gm, "cameraShake", shake);
-            WireField(gm, "distortionWave", waveCtrl);
+            WireField(gm, "towerWave", towerWave);
 
             // --- EventSystem ---
             if (Object.FindAnyObjectByType<EventSystem>() == null)

@@ -17,7 +17,7 @@ MonoBehaviour:
   maxSpeed: 8
   speedStrategy: 1
   speedAcceleration: 0.5
-  perfectTolerance: 0.1
+  perfectTolerance: 1
   comboRecoveryRate: 0.05
   comboRecoveryThreshold: 3
   recoveryRandomMin: 0.5
@@ -25,3 +25,10 @@ MonoBehaviour:
   blockHeight: 0.5
   startBlockSize: {x: 3, y: 3}
   slideRange: 5
+  pulseIntensity: 1
+  pulseDuration: 1
+  waveStrategy: 1
+  waveSpeed: 12
+  waveWidth: 1.2
+  waveStrength: 0.2
+  skyboxMaxHeight: 50
