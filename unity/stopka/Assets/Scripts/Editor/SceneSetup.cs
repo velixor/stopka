@@ -154,10 +154,6 @@ namespace Stopka.Editor
             var playingPanel = CreatePanel(canvasObj.transform, "PlayingPanel", true);
             var scoreTextObj = CreateTMP(playingPanel.transform, "ScoreText", "0", 64, TextAlignmentOptions.Top);
             SetAnchors(scoreTextObj, new Vector2(0.3f, 0.85f), new Vector2(0.7f, 0.98f));
-            var comboTextObj = CreateTMP(playingPanel.transform, "ComboText", "PERFECT!", 48, TextAlignmentOptions.Center);
-            SetAnchors(comboTextObj, new Vector2(0.1f, 0.45f), new Vector2(0.9f, 0.55f));
-            comboTextObj.SetActive(false);
-
             // --- Game Over Panel ---
             var gameOverPanel = CreatePanel(canvasObj.transform, "GameOverPanel");
             var goText = CreateTMP(gameOverPanel.transform, "GameOverText", "GAME OVER", 56, TextAlignmentOptions.Center);
@@ -181,7 +177,6 @@ namespace Stopka.Editor
             WireField(gameUI, "highScoreStartText", hsStartText.GetComponent<TextMeshProUGUI>());
             WireField(gameUI, "playingPanel", playingPanel);
             WireField(gameUI, "scoreText", scoreTextObj.GetComponent<TextMeshProUGUI>());
-            WireField(gameUI, "comboText", comboTextObj.GetComponent<TextMeshProUGUI>());
             WireField(gameUI, "gameOverPanel", gameOverPanel);
             WireField(gameUI, "finalScoreText", finalScoreObj.GetComponent<TextMeshProUGUI>());
             WireField(gameUI, "highScoreEndText", hsEndText.GetComponent<TextMeshProUGUI>());

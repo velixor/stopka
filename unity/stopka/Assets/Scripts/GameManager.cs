@@ -183,8 +183,6 @@ namespace Stopka
                 currentBlock.AnimateSize(targetSize, targetPos);
                 finalSize = targetSize;
                 finalPosition = targetPos;
-                if (gameUI != null)
-                    gameUI.ShowCombo(scoreManager.ComboCount);
                 if (audioManager != null) audioManager.PlayPlace(scoreManager.ComboCount);
                 if (cameraShake != null) cameraShake.Shake(0.05f + scoreManager.ComboCount * 0.02f);
 

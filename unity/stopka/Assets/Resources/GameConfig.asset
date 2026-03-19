@@ -15,7 +15,7 @@ MonoBehaviour:
   startSpeed: 5
   speedIncrement: 0.05
   maxSpeed: 8
-  speedStrategy: 2
+  speedStrategy: 1
   speedAcceleration: 0.5
   perfectTolerance: 0.15
   comboRecoveryRate: 0.05
@@ -31,4 +31,10 @@ MonoBehaviour:
   waveSpeed: 12
   waveWidth: 1.2
   waveStrength: 0.2
-  skyboxMaxHeight: 50
+  colorTransitionBlocks: 6
+  pastelSatMin: 0.25
+  pastelSatMax: 0.45
+  pastelValMin: 0.85
+  pastelValMax: 0.95
+  cameraOffset: {x: 5, y: 6, z: 5}
+  blockScreenY: 0.4
