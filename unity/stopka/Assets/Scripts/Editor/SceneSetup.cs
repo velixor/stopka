@@ -85,8 +85,6 @@ namespace Stopka.Editor
             // Skybox controller
             var skyboxCtrl = camObj.AddComponent<SkyboxController>();
             WireField(skyboxCtrl, "skyboxMaterial", skyboxMat);
-            WireField(skyboxCtrl, "config", config);
-            WireField(camCtrl, "skyboxController", skyboxCtrl);
 
             // --- Clean up old DistortionWaveFeature from Mobile_Renderer if present ---
             var rendererData = AssetDatabase.LoadAssetAtPath<ScriptableRendererData>("Assets/Settings/Mobile_Renderer.asset");
@@ -198,6 +196,8 @@ namespace Stopka.Editor
             WireField(gm, "audioManager", audioMgr);
             WireField(gm, "cameraShake", shake);
             WireField(gm, "towerWave", towerWave);
+            WireField(gm, "skyboxController", skyboxCtrl);
+            WireField(colorMgr, "config", config);
 
             // --- EventSystem ---
             if (Object.FindAnyObjectByType<EventSystem>() == null)

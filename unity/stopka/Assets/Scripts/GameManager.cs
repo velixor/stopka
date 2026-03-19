@@ -17,6 +17,7 @@ namespace Stopka
         [SerializeField] private AudioManager audioManager;
         [SerializeField] private CameraShake cameraShake;
         [SerializeField] private TowerWaveController towerWave;
+        [SerializeField] private SkyboxController skyboxController;
         private Material blockBaseMaterial;
         private ScoreManager scoreManager;
         private Block currentBlock;
@@ -103,6 +104,8 @@ namespace Stopka
 
             var renderer = foundationBlock.GetComponent<Renderer>();
             SetBlockMaterial(renderer, colorManager.GetColorForLayer(0));
+            if (skyboxController != null)
+                skyboxController.UpdateFromBlockColor(colorManager.CurrentBlockColor);
 
             tower.PlaceBlock(Vector3.zero, config.startBlockSize);
         }
@@ -225,6 +228,8 @@ namespace Stopka
             int layer = spawner.CurrentLayer;
             var renderer = currentBlock.GetComponent<Renderer>();
             SetBlockMaterial(renderer, colorManager.GetColorForLayer(layer));
+            if (skyboxController != null)
+                skyboxController.UpdateFromBlockColor(colorManager.CurrentBlockColor);
         }
 
         private void SpawnCutoffPiece(Block block, SliceResult result)

@@ -6,7 +6,6 @@ namespace Stopka
     {
         [SerializeField] private float smoothTime = 0.5f;
         [SerializeField] private Vector3 offset = new Vector3(5f, 5f, 5f);
-        [SerializeField] private SkyboxController skyboxController;
         [SerializeField] private float pullbackSmoothTime = 1f;
 
         private float targetY;
@@ -75,8 +74,6 @@ namespace Stopka
                     ref orthoSizeVelocity, pullbackSmoothTime);
             }
 
-            if (skyboxController != null)
-                skyboxController.UpdateForHeight(targetY);
         }
     }
 }

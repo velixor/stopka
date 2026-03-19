@@ -49,9 +49,17 @@ namespace Stopka
         [Tooltip("Strength of vertex displacement")]
         public float waveStrength = 0.3f;
 
-        [Header("Effects — Skybox")]
-        [Tooltip("Tower height at which skybox completes full palette cycle")]
-        public float skyboxMaxHeight = 50f;
+        [Header("Colors")]
+        [Tooltip("Number of blocks per color transition")]
+        public int colorTransitionBlocks = 10;
+        [Range(0.2f, 0.5f)]
+        public float pastelSatMin = 0.25f;
+        [Range(0.2f, 0.5f)]
+        public float pastelSatMax = 0.45f;
+        [Range(0.8f, 1f)]
+        public float pastelValMin = 0.85f;
+        [Range(0.8f, 1f)]
+        public float pastelValMax = 0.95f;
 
     }
 }
