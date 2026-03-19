@@ -51,7 +51,7 @@ namespace Stopka
 
         [Header("Colors")]
         [Tooltip("Number of blocks per color transition")]
-        public int colorTransitionBlocks = 10;
+        public int colorTransitionBlocks = 6;
         [Range(0.2f, 0.5f)]
         public float pastelSatMin = 0.25f;
         [Range(0.2f, 0.5f)]

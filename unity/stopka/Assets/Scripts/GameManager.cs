@@ -34,6 +34,8 @@ namespace Stopka
             scoreManager = new ScoreManager();
             scoreManager.HighScore = PlayerPrefs.GetInt("HighScore", 0);
             colorManager.Initialize();
+            if (skyboxController != null)
+                skyboxController.UpdateFromBlockColor(colorManager.CurrentBlockColor);
             SetState(GameState.Start);
         }
 
