@@ -23,10 +23,9 @@ namespace Stopka
         private void Start()
         {
             targetY = 0f;
-            transform.position = offset;
-            transform.LookAt(Vector3.zero);
             cam = GetComponent<Camera>();
             baseOrthoSize = cam != null ? cam.orthographicSize : 5f;
+            ApplyInitialPosition();
         }
 
         public void SetTargetHeight(float height)
@@ -56,8 +55,14 @@ namespace Stopka
             isPullingBack = false;
             orthoSizeVelocity = 0f;
             if (cam != null) cam.orthographicSize = baseOrthoSize;
-            transform.position = offset;
-            transform.LookAt(Vector3.zero);
+            ApplyInitialPosition();
+        }
+
+        private void ApplyInitialPosition()
+        {
+            float lookAtOffset = (0.5f - config.blockScreenY) * 2f * baseOrthoSize;
+            transform.position = new Vector3(offset.x, offset.y + lookAtOffset, offset.z);
+            transform.LookAt(new Vector3(0f, lookAtOffset, 0f));
         }
 
         private void LateUpdate()
@@ -66,8 +71,9 @@ namespace Stopka
             currentY = Mathf.SmoothDamp(currentY, target, ref velocityY,
                 isPullingBack ? pullbackSmoothTime : smoothTime);
 
-            transform.position = new Vector3(offset.x, currentY + offset.y, offset.z);
-            transform.LookAt(new Vector3(0f, currentY, 0f));
+            float lookAtOffset = (0.5f - config.blockScreenY) * 2f * cam.orthographicSize;
+            transform.position = new Vector3(offset.x, currentY + offset.y + lookAtOffset, offset.z);
+            transform.LookAt(new Vector3(0f, currentY + lookAtOffset, 0f));
 
             if (isPullingBack && cam != null)
             {

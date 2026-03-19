@@ -63,6 +63,9 @@ namespace Stopka
 
         [Header("Camera")]
         public Vector3 cameraOffset = new Vector3(5f, 6f, 5f);
+        [Tooltip("Vertical screen position of the active block (0 = bottom, 1 = top)")]
+        [Range(0f, 1f)]
+        public float blockScreenY = 0.4f;
 
     }
 }
