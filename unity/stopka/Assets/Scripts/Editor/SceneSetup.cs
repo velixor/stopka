@@ -77,10 +77,11 @@ namespace Stopka.Editor
                 AssetDatabase.CreateAsset(skyboxMat, "Assets/Resources/GradientSkybox.mat");
             }
             RenderSettings.skybox = skyboxMat;
-            camObj.transform.position = new Vector3(5f, 5f, 5f);
+            camObj.transform.position = config.cameraOffset;
             camObj.transform.LookAt(Vector3.zero);
 
             var camCtrl = camObj.AddComponent<CameraController>();
+            WireField(camCtrl, "config", config);
 
             // Skybox controller
             var skyboxCtrl = camObj.AddComponent<SkyboxController>();

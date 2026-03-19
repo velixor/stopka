@@ -61,5 +61,8 @@ namespace Stopka
         [Range(0.8f, 1f)]
         public float pastelValMax = 0.95f;
 
+        [Header("Camera")]
+        public Vector3 cameraOffset = new Vector3(5f, 6f, 5f);
+
     }
 }

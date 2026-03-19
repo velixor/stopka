@@ -4,9 +4,11 @@ namespace Stopka
 {
     public class CameraController : MonoBehaviour
     {
+        [SerializeField] private GameConfig config;
         [SerializeField] private float smoothTime = 0.5f;
-        [SerializeField] private Vector3 offset = new Vector3(5f, 5f, 5f);
         [SerializeField] private float pullbackSmoothTime = 1f;
+
+        private Vector3 offset => config.cameraOffset;
 
         private float targetY;
         private float currentY;
