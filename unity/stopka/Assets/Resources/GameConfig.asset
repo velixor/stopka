@@ -24,9 +24,9 @@ MonoBehaviour:
   recoveryRandomMax: 1.5
   blockHeight: 0.5
   startBlockSize: {x: 3, y: 3}
-  slideRange: 5
-  pulseIntensity: 1
-  pulseDuration: 1
+  slideRange: 6
+  squashAmount: 1
+  squashDuration: 1
   waveStrategy: 1
   waveSpeed: 12
   waveWidth: 1.2

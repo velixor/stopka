@@ -34,11 +34,11 @@ namespace Stopka
         [Tooltip("How far off-screen the block starts sliding from")]
         public float slideRange = 5f;
 
-        [Header("Effects — Block Pulse")]
-        [Tooltip("Emission intensity multiplier on perfect placement")]
-        public float pulseIntensity = 2f;
-        [Tooltip("Duration of the pulse glow fade (seconds)")]
-        public float pulseDuration = 0.5f;
+        [Header("Effects — Perfect Squash")]
+        [Tooltip("Vertex displacement strength for single-block squash")]
+        public float squashAmount = 0.3f;
+        [Tooltip("Duration of the squash effect (seconds)")]
+        public float squashDuration = 0.2f;
 
         [Header("Effects — Tower Wave")]
         public WaveStrategy waveStrategy = WaveStrategy.Bulge;

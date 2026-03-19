@@ -20,6 +20,17 @@ namespace Stopka
         };
 
         private Coroutine activeWave;
+        private Coroutine activeSquash;
+
+        public void SquashBlock(Block block)
+        {
+            if (block == null) return;
+
+            if (activeSquash != null)
+                StopCoroutine(activeSquash);
+
+            activeSquash = StartCoroutine(SquashCoroutine(block));
+        }
 
         public void TriggerWave(List<Block> placedBlocks, GameObject foundationBlock,
             BlockColorManager colorManager, int currentLayer)
@@ -87,6 +98,42 @@ namespace Stopka
                         mat.DisableKeyword(kw);
                 }
             }
+        }
+
+        private IEnumerator SquashCoroutine(Block block)
+        {
+            var r = block.GetComponent<Renderer>();
+            if (r == null) yield break;
+
+            var mat = r.material;
+            foreach (var kw in StrategyKeywords)
+                mat.DisableKeyword(kw);
+            mat.EnableKeyword("_WAVE_SQUEEZE");
+
+            float blockY = block.transform.position.y;
+            float halfHeight = config.blockHeight * 0.5f;
+
+            Shader.SetGlobalFloat(WaveWidthId, halfHeight);
+            Shader.SetGlobalFloat(WaveFrontYId, blockY);
+            Shader.SetGlobalFloat(WaveStrengthId, config.squashAmount);
+
+            // Hold briefly then fade out
+            float elapsed = 0f;
+            while (elapsed < config.squashDuration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / config.squashDuration;
+                float easeOut = 1f - (1f - t) * (1f - t);
+                Shader.SetGlobalFloat(WaveStrengthId, config.squashAmount * (1f - easeOut));
+                yield return null;
+            }
+
+            Shader.SetGlobalFloat(WaveStrengthId, 0f);
+            Shader.SetGlobalFloat(WaveFrontYId, -100f);
+            foreach (var kw in StrategyKeywords)
+                mat.DisableKeyword(kw);
+
+            activeSquash = null;
         }
 
         private IEnumerator WaveCoroutine(List<Block> placedBlocks, GameObject foundationBlock)
