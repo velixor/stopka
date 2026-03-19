@@ -15,19 +15,19 @@ MonoBehaviour:
   startSpeed: 5
   speedIncrement: 0.05
   maxSpeed: 8
-  speedStrategy: 1
+  speedStrategy: 2
   speedAcceleration: 0.5
-  perfectTolerance: 1
+  perfectTolerance: 0.15
   comboRecoveryRate: 0.05
   comboRecoveryThreshold: 3
   recoveryRandomMin: 0.5
   recoveryRandomMax: 1.5
   blockHeight: 0.5
   startBlockSize: {x: 3, y: 3}
-  slideRange: 5
+  slideRange: 6
   pulseIntensity: 1
   pulseDuration: 1
-  waveStrategy: 1
+  waveStrategy: 0
   waveSpeed: 12
   waveWidth: 1.2
   waveStrength: 0.2
