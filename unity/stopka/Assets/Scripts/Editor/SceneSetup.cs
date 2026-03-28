@@ -413,6 +413,7 @@ namespace Stopka.Editor
 
             var img = panel.AddComponent<Image>();
             img.color = PanelBg;
+            img.raycastTarget = false;
 
             // Add outline for subtle border
             var outline = panel.AddComponent<Outline>();
@@ -445,6 +446,7 @@ namespace Stopka.Editor
             divider.transform.SetParent(parent, false);
             var img = divider.AddComponent<Image>();
             img.color = new Color(1, 1, 1, 0.25f);
+            img.raycastTarget = false;
             return divider;
         }
 
@@ -457,6 +459,7 @@ namespace Stopka.Editor
             tmp.fontSize = fontSize;
             tmp.alignment = alignment;
             tmp.color = Color.white;
+            tmp.raycastTarget = false;
             if (font != null)
                 tmp.font = font;
             return obj;
@@ -524,7 +527,7 @@ namespace Stopka.Editor
             bgImg.color = new Color(1, 1, 1, 0.08f);
 
             // Gear text (unicode gear character)
-            var gearText = CreateTMP(btn.transform, "GearIcon", "\u2699", 28, TextAlignmentOptions.Center, font);
+            var gearText = CreateTMP(btn.transform, "GearIcon", "...", 32, TextAlignmentOptions.Center, font);
             gearText.GetComponent<TextMeshProUGUI>().color = GearDim;
             var gearRT = gearText.GetComponent<RectTransform>();
             gearRT.anchorMin = Vector2.zero;

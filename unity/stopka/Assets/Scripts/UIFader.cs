@@ -10,21 +10,25 @@ namespace Stopka
         private RectTransform rectTransform;
         private Coroutine activeCoroutine;
 
-        private void Awake()
+        private void EnsureInitialized()
         {
-            canvasGroup = GetComponent<CanvasGroup>();
-            rectTransform = GetComponent<RectTransform>();
+            if (canvasGroup == null)
+                canvasGroup = GetComponent<CanvasGroup>();
+            if (rectTransform == null)
+                rectTransform = GetComponent<RectTransform>();
         }
 
         public void FadeIn(float duration = 0.3f)
         {
             gameObject.SetActive(true);
+            EnsureInitialized();
             StopActive();
             activeCoroutine = StartCoroutine(FadeCoroutine(0f, 1f, 0.95f, 1f, duration));
         }
 
         public void FadeOut(float duration = 0.3f, System.Action onComplete = null)
         {
+            EnsureInitialized();
             StopActive();
             activeCoroutine = StartCoroutine(FadeCoroutine(1f, 0f, 1f, 0.95f, duration, () =>
             {
@@ -36,6 +40,7 @@ namespace Stopka
         public void ShowImmediate()
         {
             gameObject.SetActive(true);
+            EnsureInitialized();
             StopActive();
             canvasGroup.alpha = 1f;
             rectTransform.localScale = Vector3.one;
@@ -43,6 +48,7 @@ namespace Stopka
 
         public void HideImmediate()
         {
+            EnsureInitialized();
             StopActive();
             canvasGroup.alpha = 0f;
             rectTransform.localScale = Vector3.one * 0.95f;
