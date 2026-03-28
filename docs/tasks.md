@@ -13,15 +13,12 @@
 - добавить звуки
 - добавить вибрации
 - сделать иконку
-- доработать меню
-- сохранение рекордов на устройстве
 - локализация
 
 - заменить bundle ID (сейчас дефолтный от Unity template)
 - добавить privacy policy URL
 - обновить версию и номер билда (1.0.0 / build 1)
 - проверить ориентации экрана (убрать лишние если игра только portrait)
-- кастомизировать launch screen
 - проверить/выключить Unity Analytics
 - подготовить скриншоты для App Store (iPhone 6.7", 6.5", iPad)
 - заполнить описание, ключевые слова, категорию в App Store Connect
@@ -32,3 +29,6 @@
 - [x] change speed
 - [x] change background while playing
 - [x] start color change when perfect set - изначально цвета постельные, но при идеальной позиции идёт волна , делающая цвет более
+- [x] доработать меню (frosted panels, fade transitions, settings, world score)
+- [x] сохранение рекордов на устройстве (PlayerPrefs)
+- [x] кастомизировать launch screen (velixor splash)
