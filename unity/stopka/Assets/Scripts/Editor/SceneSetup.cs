@@ -332,7 +332,7 @@ namespace Stopka.Editor
             var gearBtn = CreateGearButton(safeArea.transform, "GearButton", font);
 
             // ============================
-            // --- Fade Overlay (black, on top of everything) ---
+            // --- Splash / Fade Overlay (black, on top of everything) ---
             // ============================
             var fadeOverlay = new GameObject("FadeOverlay", typeof(RectTransform));
             fadeOverlay.transform.SetParent(canvasObj.transform, false);
@@ -346,6 +346,26 @@ namespace Stopka.Editor
             var fadeOverlayCG = fadeOverlay.AddComponent<CanvasGroup>();
             fadeOverlayCG.blocksRaycasts = false;
 
+            // Splash "velixor" text (Cormorant font)
+            var splashFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Cormorant SDF.asset");
+            if (splashFont == null)
+                Debug.LogWarning("SceneSetup: Cormorant SDF font not found at Assets/Fonts/Cormorant SDF.asset");
+            var splashText = new GameObject("SplashText", typeof(RectTransform));
+            splashText.transform.SetParent(fadeOverlay.transform, false);
+            var splashTMP = splashText.AddComponent<TextMeshProUGUI>();
+            splashTMP.text = "velixor";
+            splashTMP.fontSize = 140;
+            splashTMP.alignment = TextAlignmentOptions.Center;
+            splashTMP.color = new Color(1f, 1f, 1f, 0.85f);
+            splashTMP.characterSpacing = 8f;
+            splashTMP.raycastTarget = false;
+            if (splashFont != null) splashTMP.font = splashFont;
+            var splashRT = splashText.GetComponent<RectTransform>();
+            splashRT.anchorMin = new Vector2(0, 0.4f);
+            splashRT.anchorMax = new Vector2(1, 0.6f);
+            splashRT.offsetMin = Vector2.zero;
+            splashRT.offsetMax = Vector2.zero;
+
             // ============================
             // --- GameUI component ---
             // ============================
@@ -356,6 +376,7 @@ namespace Stopka.Editor
             WireField(gameUI, "settingsFader", settingsFader);
             WireField(gameUI, "settingsDimBackground", dimBg);
             WireField(gameUI, "fadeOverlay", fadeOverlayCG);
+            WireField(gameUI, "splashText", splashTMP);
             WireField(gameUI, "worldScore", worldScore);
             WireField(gameUI, "highScoreStartText", hsStartText.GetComponent<TextMeshProUGUI>());
             WireField(gameUI, "tapToStartText", tapText.GetComponent<TextMeshProUGUI>());

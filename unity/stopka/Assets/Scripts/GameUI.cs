@@ -14,6 +14,7 @@ namespace Stopka
         [SerializeField] private UIFader settingsFader;
         [SerializeField] private GameObject settingsDimBackground;
         [SerializeField] private CanvasGroup fadeOverlay;
+        [SerializeField] private TextMeshProUGUI splashText;
 
         [Header("Start Screen")]
         [SerializeField] private TextMeshProUGUI highScoreStartText;
@@ -70,15 +71,36 @@ namespace Stopka
 
         private IEnumerator InitialFadeIn()
         {
+            // Start fully black, splash text invisible
             fadeOverlay.alpha = 1f;
-            yield return new WaitForSeconds(0.2f); // brief hold on black
+            if (splashText != null)
+                splashText.color = new Color(1f, 1f, 1f, 0f);
 
-            float duration = 0.8f;
+            yield return new WaitForSeconds(0.3f);
+
+            // Fade in "velixor" text
+            float fadeInDuration = 0.8f;
             float elapsed = 0f;
-            while (elapsed < duration)
+            while (elapsed < fadeInDuration)
             {
                 elapsed += Time.unscaledDeltaTime;
-                fadeOverlay.alpha = 1f - Mathf.Clamp01(elapsed / duration);
+                float t = Mathf.Clamp01(elapsed / fadeInDuration);
+                if (splashText != null)
+                    splashText.color = new Color(1f, 1f, 1f, t * 0.85f);
+                yield return null;
+            }
+
+            // Hold splash
+            yield return new WaitForSeconds(1.5f);
+
+            // Fade out entire overlay (text + black background)
+            float fadeOutDuration = 0.8f;
+            elapsed = 0f;
+            while (elapsed < fadeOutDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(elapsed / fadeOutDuration);
+                fadeOverlay.alpha = 1f - t;
                 yield return null;
             }
 
