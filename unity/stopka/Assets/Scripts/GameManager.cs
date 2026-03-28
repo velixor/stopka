@@ -114,6 +114,8 @@ namespace Stopka
 
             // Spawn first moving block
             SpawnNextBlock();
+            if (gameUI != null)
+                gameUI.SetScoreTargetHeight(config.blockHeight);
             SetState(GameState.Playing);
             if (audioManager != null) audioManager.StartMusic();
         }
@@ -236,7 +238,10 @@ namespace Stopka
 
             // Update UI
             if (gameUI != null)
+            {
                 gameUI.UpdateScore(scoreManager);
+                gameUI.SetScoreTargetHeight(currentBlock.transform.position.y);
+            }
 
             // Detect new record during play
             if (!hasTriggeredNewRecord && scoreManager.Score > scoreManager.HighScore)

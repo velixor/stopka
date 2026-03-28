@@ -177,12 +177,12 @@ namespace Stopka.Editor
             // Inner content container (centered)
             var startContent = CreateCenteredContainer(startPanel.transform, "StartContent", 0.25f, 0.75f);
 
-            var titleText = CreateTMP(startContent.transform, "TitleText", "STOPKA", 72, TextAlignmentOptions.Center, font);
+            var titleText = CreateTMP(startContent.transform, "TitleText", "STOPKA", 96, TextAlignmentOptions.Center, font);
             titleText.GetComponent<TextMeshProUGUI>().color = Color.white;
             titleText.GetComponent<TextMeshProUGUI>().characterSpacing = CharSpacingTitle;
             SetAnchors(titleText, new Vector2(0, 0.6f), new Vector2(1, 0.85f));
 
-            var tapText = CreateTMP(startContent.transform, "TapText", "TAP TO START", 36, TextAlignmentOptions.Center, font);
+            var tapText = CreateTMP(startContent.transform, "TapText", "TAP TO START", 48, TextAlignmentOptions.Center, font);
             tapText.GetComponent<TextMeshProUGUI>().color = TextPrimary;
             tapText.GetComponent<TextMeshProUGUI>().characterSpacing = CharSpacingSmall;
             SetAnchors(tapText, new Vector2(0, 0.4f), new Vector2(1, 0.55f));
@@ -191,43 +191,47 @@ namespace Stopka.Editor
             var divider1 = CreateDivider(startContent.transform, "Divider");
             SetAnchors(divider1, new Vector2(0.4f, 0.32f), new Vector2(0.6f, 0.325f));
 
-            var hsStartText = CreateTMP(startContent.transform, "HighScoreText", "BEST: 0", 28, TextAlignmentOptions.Center, font);
+            var hsStartText = CreateTMP(startContent.transform, "HighScoreText", "BEST: 0", 40, TextAlignmentOptions.Center, font);
             hsStartText.GetComponent<TextMeshProUGUI>().color = TextSecondary;
             hsStartText.GetComponent<TextMeshProUGUI>().characterSpacing = CharSpacingSmall;
             SetAnchors(hsStartText, new Vector2(0, 0.18f), new Vector2(1, 0.3f));
 
             // ============================
-            // --- Playing Panel (inside SafeArea) ---
+            // --- World Score Display (3D, in scene) ---
             // ============================
-            var playingPanel = new GameObject("PlayingPanel", typeof(RectTransform));
-            playingPanel.transform.SetParent(safeArea.transform, false);
-            var playingRT = playingPanel.GetComponent<RectTransform>();
-            playingRT.anchorMin = Vector2.zero;
-            playingRT.anchorMax = Vector2.one;
-            playingRT.sizeDelta = Vector2.zero;
-            var playingCG = playingPanel.AddComponent<CanvasGroup>();
-            var playingFader = playingPanel.AddComponent<UIFader>();
+            var worldScoreObj = new GameObject("WorldScoreDisplay");
+            worldScoreObj.transform.position = new Vector3(0, 2f, 0);
 
-            var scoreTextObj = CreateTMP(playingPanel.transform, "ScoreText", "0", 64, TextAlignmentOptions.Top, font);
-            scoreTextObj.GetComponent<TextMeshProUGUI>().color = Color.white;
-            scoreTextObj.GetComponent<TextMeshProUGUI>().characterSpacing = CharSpacingSmall;
-            // TMP underlay for drop shadow
-            var scoreTMP = scoreTextObj.GetComponent<TextMeshProUGUI>();
-            scoreTMP.fontMaterial.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0f);
-            scoreTMP.fontMaterial.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -1f);
-            scoreTMP.fontMaterial.SetFloat(ShaderUtilities.ID_UnderlayDilate, 0.3f);
-            scoreTMP.fontMaterial.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0.5f);
-            scoreTMP.fontMaterial.SetColor(ShaderUtilities.ID_UnderlayColor, new Color(0, 0, 0, 0.3f));
-            scoreTMP.fontMaterial.EnableKeyword(ShaderUtilities.Keyword_Underlay);
-            SetAnchors(scoreTextObj, new Vector2(0.3f, 0.85f), new Vector2(0.7f, 0.98f));
+            // Score text (3D TextMeshPro)
+            var scoreTextObj = new GameObject("ScoreText");
+            scoreTextObj.transform.SetParent(worldScoreObj.transform, false);
+            var scoreTMP3D = scoreTextObj.AddComponent<TextMeshPro>();
+            scoreTMP3D.text = "0";
+            scoreTMP3D.fontSize = 12;
+            scoreTMP3D.alignment = TextAlignmentOptions.Center;
+            scoreTMP3D.color = Color.white;
+            scoreTMP3D.characterSpacing = CharSpacingSmall;
+            if (font != null) scoreTMP3D.font = font;
 
-            // NEW BEST label (hidden by default)
-            var newBestObj = CreateTMP(playingPanel.transform, "NewBestLabel", "NEW BEST", 20, TextAlignmentOptions.Top, font);
-            var newBestTMP = newBestObj.GetComponent<TextMeshProUGUI>();
-            newBestTMP.color = new Color(1f, 0.843f, 0f, 0.6f);
-            newBestTMP.characterSpacing = CharSpacingMedium;
-            SetAnchors(newBestObj, new Vector2(0.3f, 0.82f), new Vector2(0.7f, 0.86f));
+            // NEW BEST label (3D TextMeshPro, below score)
+            var newBestObj = new GameObject("NewBestLabel");
+            newBestObj.transform.SetParent(worldScoreObj.transform, false);
+            newBestObj.transform.localPosition = new Vector3(0, -0.5f, 0);
+            var newBestTMP3D = newBestObj.AddComponent<TextMeshPro>();
+            newBestTMP3D.text = "NEW BEST";
+            newBestTMP3D.fontSize = 4;
+            newBestTMP3D.alignment = TextAlignmentOptions.Center;
+            newBestTMP3D.color = new Color(1f, 0.843f, 0f, 0.6f);
+            newBestTMP3D.characterSpacing = CharSpacingMedium;
+            if (font != null) newBestTMP3D.font = font;
             newBestObj.SetActive(false);
+
+            var worldScore = worldScoreObj.AddComponent<WorldScoreDisplay>();
+            WireField(worldScore, "scoreText", scoreTMP3D);
+            WireField(worldScore, "newBestText", newBestTMP3D);
+
+            // Playing panel is now minimal (just for fade state tracking, no visible content)
+            UIFader playingFader = null;
 
             // ============================
             // --- Game Over Panel ---
@@ -237,24 +241,24 @@ namespace Stopka.Editor
 
             var goContent = CreateCenteredContainer(gameOverPanel.transform, "GameOverContent", 0.2f, 0.8f);
 
-            var goText = CreateTMP(goContent.transform, "GameOverText", "GAME OVER", 22, TextAlignmentOptions.Center, font);
+            var goText = CreateTMP(goContent.transform, "GameOverText", "GAME OVER", 42, TextAlignmentOptions.Center, font);
             goText.GetComponent<TextMeshProUGUI>().color = TextSecondary;
             goText.GetComponent<TextMeshProUGUI>().characterSpacing = CharSpacingMedium;
             SetAnchors(goText, new Vector2(0, 0.72f), new Vector2(1, 0.85f));
 
-            var finalScoreObj = CreateTMP(goContent.transform, "FinalScore", "0", 72, TextAlignmentOptions.Center, font);
+            var finalScoreObj = CreateTMP(goContent.transform, "FinalScore", "0", 120, TextAlignmentOptions.Center, font);
             finalScoreObj.GetComponent<TextMeshProUGUI>().color = Color.white;
             SetAnchors(finalScoreObj, new Vector2(0, 0.48f), new Vector2(1, 0.7f));
 
             var divider2 = CreateDivider(goContent.transform, "Divider");
             SetAnchors(divider2, new Vector2(0.4f, 0.42f), new Vector2(0.6f, 0.425f));
 
-            var hsEndText = CreateTMP(goContent.transform, "HighScoreText", "BEST: 0", 22, TextAlignmentOptions.Center, font);
+            var hsEndText = CreateTMP(goContent.transform, "HighScoreText", "BEST: 0", 36, TextAlignmentOptions.Center, font);
             hsEndText.GetComponent<TextMeshProUGUI>().color = new Color(1, 1, 1, 0.45f);
             hsEndText.GetComponent<TextMeshProUGUI>().characterSpacing = CharSpacingSmall;
             SetAnchors(hsEndText, new Vector2(0, 0.3f), new Vector2(1, 0.4f));
 
-            var restartText = CreateTMP(goContent.transform, "RestartText", "TAP TO RESTART", 22, TextAlignmentOptions.Center, font);
+            var restartText = CreateTMP(goContent.transform, "RestartText", "TAP TO RESTART", 36, TextAlignmentOptions.Center, font);
             restartText.GetComponent<TextMeshProUGUI>().color = TextRestart;
             restartText.GetComponent<TextMeshProUGUI>().characterSpacing = CharSpacingMedium;
             SetAnchors(restartText, new Vector2(0, 0.12f), new Vector2(1, 0.25f));
@@ -285,7 +289,7 @@ namespace Stopka.Editor
             settingsContentRT.anchorMin = new Vector2(0.1f, 0.05f);
             settingsContentRT.anchorMax = new Vector2(0.9f, 0.95f);
 
-            var settingsTitle = CreateTMP(settingsContent.transform, "SettingsTitle", "SETTINGS", 22, TextAlignmentOptions.Center, font);
+            var settingsTitle = CreateTMP(settingsContent.transform, "SettingsTitle", "SETTINGS", 36, TextAlignmentOptions.Center, font);
             settingsTitle.GetComponent<TextMeshProUGUI>().color = new Color(1, 1, 1, 0.6f);
             settingsTitle.GetComponent<TextMeshProUGUI>().characterSpacing = CharSpacingMedium;
             SetAnchors(settingsTitle, new Vector2(0, 0.78f), new Vector2(1, 0.95f));
@@ -305,7 +309,7 @@ namespace Stopka.Editor
             SetAnchors(divider3, new Vector2(0.35f, 0.18f), new Vector2(0.65f, 0.185f));
 
             // Close text
-            var closeText = CreateTMP(settingsContent.transform, "CloseText", "TAP TO CLOSE", 18, TextAlignmentOptions.Center, font);
+            var closeText = CreateTMP(settingsContent.transform, "CloseText", "TAP TO CLOSE", 28, TextAlignmentOptions.Center, font);
             closeText.GetComponent<TextMeshProUGUI>().color = TextTertiary;
             closeText.GetComponent<TextMeshProUGUI>().characterSpacing = CharSpacingSmall;
             SetAnchors(closeText, new Vector2(0, 0.02f), new Vector2(1, 0.15f));
@@ -322,14 +326,13 @@ namespace Stopka.Editor
             // ============================
             var gameUI = gmObj.AddComponent<GameUI>();
             WireField(gameUI, "startFader", startFader);
-            WireField(gameUI, "playingFader", playingFader);
+            if (playingFader != null) WireField(gameUI, "playingFader", playingFader);
             WireField(gameUI, "gameOverFader", gameOverFader);
             WireField(gameUI, "settingsFader", settingsFader);
             WireField(gameUI, "settingsDimBackground", dimBg);
+            WireField(gameUI, "worldScore", worldScore);
             WireField(gameUI, "highScoreStartText", hsStartText.GetComponent<TextMeshProUGUI>());
             WireField(gameUI, "tapToStartText", tapText.GetComponent<TextMeshProUGUI>());
-            WireField(gameUI, "scoreText", scoreTextObj.GetComponent<TextMeshProUGUI>());
-            WireField(gameUI, "newBestLabel", newBestTMP);
             WireField(gameUI, "gameOverTitleText", goText.GetComponent<TextMeshProUGUI>());
             WireField(gameUI, "finalScoreText", finalScoreObj.GetComponent<TextMeshProUGUI>());
             WireField(gameUI, "highScoreEndText", hsEndText.GetComponent<TextMeshProUGUI>());
@@ -478,7 +481,7 @@ namespace Stopka.Editor
             rowRT.offsetMax = Vector2.zero;
 
             // Label
-            var labelObj = CreateTMP(row.transform, "Label", label, 22, TextAlignmentOptions.MidlineLeft, font);
+            var labelObj = CreateTMP(row.transform, "Label", label, 32, TextAlignmentOptions.MidlineLeft, font);
             labelObj.GetComponent<TextMeshProUGUI>().color = TextPrimary;
             labelObj.GetComponent<TextMeshProUGUI>().characterSpacing = 8f;
             SetAnchors(labelObj, new Vector2(0, 0), new Vector2(0.6f, 1));

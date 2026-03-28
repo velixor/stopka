@@ -18,9 +18,8 @@ namespace Stopka
         [SerializeField] private TextMeshProUGUI highScoreStartText;
         [SerializeField] private TextMeshProUGUI tapToStartText;
 
-        [Header("Playing HUD")]
-        [SerializeField] private TextMeshProUGUI scoreText;
-        [SerializeField] private TextMeshProUGUI newBestLabel;
+        [Header("World Score")]
+        [SerializeField] private WorldScoreDisplay worldScore;
 
         [Header("Game Over Screen")]
         [SerializeField] private TextMeshProUGUI gameOverTitleText;
@@ -37,8 +36,7 @@ namespace Stopka
         [Header("Audio")]
         [SerializeField] private AudioManager audioManager;
 
-        private static readonly Color GoldColor = new Color(1f, 0.843f, 0f); // #FFD700
-        private static readonly Color GoldGlow = new Color(1f, 0.843f, 0f, 0.5f);
+        private static readonly Color GoldColor = new Color(1f, 0.843f, 0f);
 
         private const float FadeDuration = 0.3f;
         private const float PulsePeriod = 2f;
@@ -49,10 +47,7 @@ namespace Stopka
         private bool isCountingUp;
         private bool skipCountUp;
         private int countUpTarget;
-        private Coroutine pulseCoroutine;
         private Coroutine tapPulseCoroutine;
-        private Coroutine scoreBounceCoroutine;
-        private Coroutine glowPulseCoroutine;
 
         private bool soundEnabled;
         private bool vibrationEnabled;
@@ -66,9 +61,6 @@ namespace Stopka
             vibrationEnabled = PlayerPrefs.GetInt("VibrationEnabled", 1) == 1;
             UpdateToggleVisual(soundToggleTrack, soundToggleKnob, soundEnabled);
             UpdateToggleVisual(vibrationToggleTrack, vibrationToggleKnob, vibrationEnabled);
-
-            if (newBestLabel != null)
-                newBestLabel.gameObject.SetActive(false);
         }
 
         public void SetNewHighScore(bool value)
@@ -83,16 +75,21 @@ namespace Stopka
                 case GameState.Start:
                     highScoreStartText.text = $"BEST: {score.HighScore}";
                     startFader.FadeIn(FadeDuration);
-                    playingFader.HideImmediate();
+                    if (playingFader != null) playingFader.HideImmediate();
                     gameOverFader.HideImmediate();
                     StartTapPulse();
-                    ResetPlayingHUD();
+                    if (worldScore != null)
+                    {
+                        worldScore.ResetDisplay();
+                        worldScore.Hide();
+                    }
                     break;
 
                 case GameState.Playing:
+                    if (worldScore != null) worldScore.Show();
                     UpdateScore(score);
                     startFader.FadeOut(FadeDuration);
-                    playingFader.FadeIn(FadeDuration);
+                    if (playingFader != null) playingFader.FadeIn(FadeDuration);
                     gameOverFader.HideImmediate();
                     StopTapPulse();
                     break;
@@ -107,23 +104,20 @@ namespace Stopka
 
         public void UpdateScore(ScoreManager score)
         {
-            scoreText.text = $"{score.Score}";
-            BounceScore();
+            if (worldScore != null)
+                worldScore.UpdateScore(score.Score);
         }
 
         public void ShowNewRecordDuringPlay()
         {
-            scoreText.color = GoldColor;
+            if (worldScore != null)
+                worldScore.ShowNewRecord();
+        }
 
-            if (newBestLabel != null)
-            {
-                newBestLabel.gameObject.SetActive(true);
-                newBestLabel.color = new Color(GoldColor.r, GoldColor.g, GoldColor.b, 0.6f);
-            }
-
-            if (glowPulseCoroutine != null)
-                StopCoroutine(glowPulseCoroutine);
-            glowPulseCoroutine = StartCoroutine(GlowPulseCoroutine());
+        public void SetScoreTargetHeight(float y)
+        {
+            if (worldScore != null)
+                worldScore.SetTargetHeight(y);
         }
 
         public void SkipCountUp()
@@ -176,18 +170,6 @@ namespace Stopka
 
         // --- Private ---
 
-        private void ResetPlayingHUD()
-        {
-            scoreText.color = Color.white;
-            if (newBestLabel != null)
-                newBestLabel.gameObject.SetActive(false);
-            if (glowPulseCoroutine != null)
-            {
-                StopCoroutine(glowPulseCoroutine);
-                glowPulseCoroutine = null;
-            }
-        }
-
         private void ShowGameOverPanel(ScoreManager score)
         {
             if (isNewHighScore)
@@ -216,7 +198,8 @@ namespace Stopka
             // Delay before showing panel (camera pullback)
             yield return new WaitForSeconds(0.5f);
 
-            playingFader.FadeOut(FadeDuration);
+            if (playingFader != null) playingFader.FadeOut(FadeDuration);
+            if (worldScore != null) worldScore.Hide();
             gameOverFader.FadeIn(FadeDuration);
 
             // Count up score
@@ -238,44 +221,6 @@ namespace Stopka
             isCountingUp = false;
 
             restartText.gameObject.SetActive(true);
-        }
-
-        private void BounceScore()
-        {
-            if (scoreBounceCoroutine != null)
-                StopCoroutine(scoreBounceCoroutine);
-            scoreBounceCoroutine = StartCoroutine(BounceCoroutine(scoreText.rectTransform));
-        }
-
-        private IEnumerator BounceCoroutine(RectTransform target)
-        {
-            float duration = 0.15f;
-            float elapsed = 0f;
-            Vector3 originalScale = Vector3.one;
-
-            while (elapsed < duration)
-            {
-                elapsed += Time.unscaledDeltaTime;
-                float t = elapsed / duration;
-                // Punch: quick up then back
-                float scale = 1f + 0.1f * Mathf.Sin(t * Mathf.PI);
-                target.localScale = new Vector3(scale, scale, 1f);
-                yield return null;
-            }
-
-            target.localScale = originalScale;
-            scoreBounceCoroutine = null;
-        }
-
-        private IEnumerator GlowPulseCoroutine()
-        {
-            while (true)
-            {
-                float t = Mathf.PingPong(Time.unscaledTime, PulsePeriod / 2f) / (PulsePeriod / 2f);
-                float alpha = Mathf.Lerp(0.8f, 1f, t);
-                scoreText.color = new Color(GoldColor.r, GoldColor.g, GoldColor.b, alpha);
-                yield return null;
-            }
         }
 
         private void StartTapPulse()
