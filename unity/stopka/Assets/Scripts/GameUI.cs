@@ -1,25 +1,75 @@
+using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 namespace Stopka
 {
     public class GameUI : MonoBehaviour
     {
+        [Header("Panels")]
+        [SerializeField] private UIFader startFader;
+        [SerializeField] private UIFader playingFader;
+        [SerializeField] private UIFader gameOverFader;
+        [SerializeField] private UIFader settingsFader;
+        [SerializeField] private GameObject settingsDimBackground;
+
         [Header("Start Screen")]
-        [SerializeField] private GameObject startPanel;
         [SerializeField] private TextMeshProUGUI highScoreStartText;
+        [SerializeField] private TextMeshProUGUI tapToStartText;
 
         [Header("Playing HUD")]
-        [SerializeField] private GameObject playingPanel;
         [SerializeField] private TextMeshProUGUI scoreText;
+        [SerializeField] private TextMeshProUGUI newBestLabel;
 
         [Header("Game Over Screen")]
-        [SerializeField] private GameObject gameOverPanel;
+        [SerializeField] private TextMeshProUGUI gameOverTitleText;
         [SerializeField] private TextMeshProUGUI finalScoreText;
         [SerializeField] private TextMeshProUGUI highScoreEndText;
-        [SerializeField] private GameObject newHighScoreBadge;
+        [SerializeField] private TextMeshProUGUI restartText;
+
+        [Header("Settings")]
+        [SerializeField] private Image soundToggleTrack;
+        [SerializeField] private RectTransform soundToggleKnob;
+        [SerializeField] private Image vibrationToggleTrack;
+        [SerializeField] private RectTransform vibrationToggleKnob;
+
+        [Header("Audio")]
+        [SerializeField] private AudioManager audioManager;
+
+        private static readonly Color GoldColor = new Color(1f, 0.843f, 0f); // #FFD700
+        private static readonly Color GoldGlow = new Color(1f, 0.843f, 0f, 0.5f);
+
+        private const float FadeDuration = 0.3f;
+        private const float PulsePeriod = 2f;
+        private const float CountUpDuration = 1f;
 
         private bool isNewHighScore;
+        private bool isSettingsOpen;
+        private bool isCountingUp;
+        private bool skipCountUp;
+        private int countUpTarget;
+        private Coroutine pulseCoroutine;
+        private Coroutine tapPulseCoroutine;
+        private Coroutine scoreBounceCoroutine;
+        private Coroutine glowPulseCoroutine;
+
+        private bool soundEnabled;
+        private bool vibrationEnabled;
+
+        public bool IsSettingsOpen => isSettingsOpen;
+        public bool IsCountingUp => isCountingUp;
+
+        private void Start()
+        {
+            soundEnabled = PlayerPrefs.GetInt("SoundEnabled", 1) == 1;
+            vibrationEnabled = PlayerPrefs.GetInt("VibrationEnabled", 1) == 1;
+            UpdateToggleVisual(soundToggleTrack, soundToggleKnob, soundEnabled);
+            UpdateToggleVisual(vibrationToggleTrack, vibrationToggleKnob, vibrationEnabled);
+
+            if (newBestLabel != null)
+                newBestLabel.gameObject.SetActive(false);
+        }
 
         public void SetNewHighScore(bool value)
         {
@@ -28,22 +78,29 @@ namespace Stopka
 
         public void SetState(GameState state, ScoreManager score)
         {
-            startPanel.SetActive(state == GameState.Start);
-            playingPanel.SetActive(state == GameState.Playing);
-            gameOverPanel.SetActive(state == GameState.GameOver);
-
             switch (state)
             {
                 case GameState.Start:
-                    highScoreStartText.text = $"Best: {score.HighScore}";
+                    highScoreStartText.text = $"BEST: {score.HighScore}";
+                    startFader.FadeIn(FadeDuration);
+                    playingFader.HideImmediate();
+                    gameOverFader.HideImmediate();
+                    StartTapPulse();
+                    ResetPlayingHUD();
                     break;
+
                 case GameState.Playing:
                     UpdateScore(score);
+                    startFader.FadeOut(FadeDuration);
+                    playingFader.FadeIn(FadeDuration);
+                    gameOverFader.HideImmediate();
+                    StopTapPulse();
                     break;
+
                 case GameState.GameOver:
-                    finalScoreText.text = $"{score.Score}";
-                    highScoreEndText.text = $"Best: {score.HighScore}";
-                    newHighScoreBadge.SetActive(isNewHighScore);
+                    startFader.HideImmediate();
+                    // playingFader stays visible during count-up, hidden after
+                    ShowGameOverPanel(score);
                     break;
             }
         }
@@ -51,6 +108,221 @@ namespace Stopka
         public void UpdateScore(ScoreManager score)
         {
             scoreText.text = $"{score.Score}";
+            BounceScore();
+        }
+
+        public void ShowNewRecordDuringPlay()
+        {
+            scoreText.color = GoldColor;
+
+            if (newBestLabel != null)
+            {
+                newBestLabel.gameObject.SetActive(true);
+                newBestLabel.color = new Color(GoldColor.r, GoldColor.g, GoldColor.b, 0.6f);
+            }
+
+            if (glowPulseCoroutine != null)
+                StopCoroutine(glowPulseCoroutine);
+            glowPulseCoroutine = StartCoroutine(GlowPulseCoroutine());
+        }
+
+        public void SkipCountUp()
+        {
+            if (isCountingUp)
+                skipCountUp = true;
+        }
+
+        // --- Settings ---
+
+        public void OpenSettings()
+        {
+            if (isSettingsOpen) return;
+            isSettingsOpen = true;
+            if (settingsDimBackground != null)
+                settingsDimBackground.SetActive(true);
+            settingsFader.FadeIn(FadeDuration);
+        }
+
+        public void CloseSettings()
+        {
+            if (!isSettingsOpen) return;
+            isSettingsOpen = false;
+            settingsFader.FadeOut(FadeDuration, () =>
+            {
+                if (settingsDimBackground != null)
+                    settingsDimBackground.SetActive(false);
+            });
+        }
+
+        public void ToggleSound()
+        {
+            soundEnabled = !soundEnabled;
+            PlayerPrefs.SetInt("SoundEnabled", soundEnabled ? 1 : 0);
+            PlayerPrefs.Save();
+            UpdateToggleVisual(soundToggleTrack, soundToggleKnob, soundEnabled);
+            if (audioManager != null)
+                audioManager.SetMuted(!soundEnabled);
+        }
+
+        public void ToggleVibration()
+        {
+            vibrationEnabled = !vibrationEnabled;
+            PlayerPrefs.SetInt("VibrationEnabled", vibrationEnabled ? 1 : 0);
+            PlayerPrefs.Save();
+            UpdateToggleVisual(vibrationToggleTrack, vibrationToggleKnob, vibrationEnabled);
+        }
+
+        public bool IsVibrationEnabled => vibrationEnabled;
+
+        // --- Private ---
+
+        private void ResetPlayingHUD()
+        {
+            scoreText.color = Color.white;
+            if (newBestLabel != null)
+                newBestLabel.gameObject.SetActive(false);
+            if (glowPulseCoroutine != null)
+            {
+                StopCoroutine(glowPulseCoroutine);
+                glowPulseCoroutine = null;
+            }
+        }
+
+        private void ShowGameOverPanel(ScoreManager score)
+        {
+            if (isNewHighScore)
+            {
+                gameOverTitleText.text = "\u2605 NEW RECORD \u2605";
+                gameOverTitleText.color = new Color(GoldColor.r, GoldColor.g, GoldColor.b, 0.7f);
+                finalScoreText.color = GoldColor;
+                highScoreEndText.text = $"PREVIOUS: {score.HighScore - (score.Score - score.HighScore)}";
+                highScoreEndText.color = new Color(1f, 1f, 1f, 0.4f);
+            }
+            else
+            {
+                gameOverTitleText.text = "GAME OVER";
+                gameOverTitleText.color = new Color(1f, 1f, 1f, 0.5f);
+                finalScoreText.color = Color.white;
+                highScoreEndText.text = $"BEST: {score.HighScore}";
+                highScoreEndText.color = new Color(1f, 1f, 1f, 0.45f);
+            }
+
+            restartText.gameObject.SetActive(false);
+            StartCoroutine(GameOverSequence(score));
+        }
+
+        private IEnumerator GameOverSequence(ScoreManager score)
+        {
+            // Delay before showing panel (camera pullback)
+            yield return new WaitForSeconds(0.5f);
+
+            playingFader.FadeOut(FadeDuration);
+            gameOverFader.FadeIn(FadeDuration);
+
+            // Count up score
+            isCountingUp = true;
+            skipCountUp = false;
+            countUpTarget = score.Score;
+            float elapsed = 0f;
+
+            while (elapsed < CountUpDuration && !skipCountUp)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(elapsed / CountUpDuration);
+                int displayScore = Mathf.RoundToInt(Mathf.Lerp(0, countUpTarget, t));
+                finalScoreText.text = $"{displayScore}";
+                yield return null;
+            }
+
+            finalScoreText.text = $"{countUpTarget}";
+            isCountingUp = false;
+
+            restartText.gameObject.SetActive(true);
+        }
+
+        private void BounceScore()
+        {
+            if (scoreBounceCoroutine != null)
+                StopCoroutine(scoreBounceCoroutine);
+            scoreBounceCoroutine = StartCoroutine(BounceCoroutine(scoreText.rectTransform));
+        }
+
+        private IEnumerator BounceCoroutine(RectTransform target)
+        {
+            float duration = 0.15f;
+            float elapsed = 0f;
+            Vector3 originalScale = Vector3.one;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = elapsed / duration;
+                // Punch: quick up then back
+                float scale = 1f + 0.1f * Mathf.Sin(t * Mathf.PI);
+                target.localScale = new Vector3(scale, scale, 1f);
+                yield return null;
+            }
+
+            target.localScale = originalScale;
+            scoreBounceCoroutine = null;
+        }
+
+        private IEnumerator GlowPulseCoroutine()
+        {
+            while (true)
+            {
+                float t = Mathf.PingPong(Time.unscaledTime, PulsePeriod / 2f) / (PulsePeriod / 2f);
+                float alpha = Mathf.Lerp(0.8f, 1f, t);
+                scoreText.color = new Color(GoldColor.r, GoldColor.g, GoldColor.b, alpha);
+                yield return null;
+            }
+        }
+
+        private void StartTapPulse()
+        {
+            if (tapPulseCoroutine != null)
+                StopCoroutine(tapPulseCoroutine);
+            tapPulseCoroutine = StartCoroutine(TapPulseCoroutine());
+        }
+
+        private void StopTapPulse()
+        {
+            if (tapPulseCoroutine != null)
+            {
+                StopCoroutine(tapPulseCoroutine);
+                tapPulseCoroutine = null;
+            }
+        }
+
+        private IEnumerator TapPulseCoroutine()
+        {
+            while (true)
+            {
+                float t = Mathf.PingPong(Time.unscaledTime, PulsePeriod / 2f) / (PulsePeriod / 2f);
+                float alpha = Mathf.Lerp(0.5f, 0.9f, t);
+                tapToStartText.color = new Color(1f, 1f, 1f, alpha);
+                yield return null;
+            }
+        }
+
+        private void UpdateToggleVisual(Image track, RectTransform knob, bool isOn)
+        {
+            if (track == null || knob == null) return;
+
+            track.color = isOn
+                ? new Color(1f, 1f, 1f, 0.3f)
+                : new Color(1f, 1f, 1f, 0.15f);
+
+            // Knob position: right when on, left when off
+            float trackWidth = track.rectTransform.rect.width;
+            float knobSize = knob.rect.width;
+            float offset = (trackWidth - knobSize) / 2f - 2f;
+            knob.anchoredPosition = new Vector2(isOn ? offset : -offset, 0f);
+
+            // Knob color
+            var knobImage = knob.GetComponent<Image>();
+            if (knobImage != null)
+                knobImage.color = isOn ? Color.white : new Color(1f, 1f, 1f, 0.5f);
         }
     }
 }

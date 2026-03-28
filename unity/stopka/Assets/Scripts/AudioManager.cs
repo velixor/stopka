@@ -19,6 +19,7 @@ namespace Stopka
 
         private AudioSource sfxSource;
         private AudioSource musicSource;
+        private bool isMuted;
 
         private void Awake()
         {
@@ -29,6 +30,25 @@ namespace Stopka
             musicSource.playOnAwake = false;
             musicSource.loop = true;
             musicSource.volume = musicVolume;
+
+            isMuted = PlayerPrefs.GetInt("SoundEnabled", 1) == 0;
+            ApplyMuteState();
+        }
+
+        public void SetMuted(bool muted)
+        {
+            isMuted = muted;
+            PlayerPrefs.SetInt("SoundEnabled", muted ? 0 : 1);
+            PlayerPrefs.Save();
+            ApplyMuteState();
+        }
+
+        public bool IsMuted => isMuted;
+
+        private void ApplyMuteState()
+        {
+            sfxSource.mute = isMuted;
+            musicSource.mute = isMuted;
         }
 
         public void StartMusic()

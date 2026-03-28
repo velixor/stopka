@@ -13,7 +13,9 @@
       "mcp__UnityMCP__manage_material",
       "mcp__UnityMCP__manage_components",
       "Bash(git rm:*)",
-      "Bash(find /Users/velixor/Developer/projects/stopka -type f \\\\\\(-name *privacy* -o -name *policy* -o -name *terms* \\\\\\))"
+      "Bash(find /Users/velixor/Developer/projects/stopka -type f \\\\\\(-name *privacy* -o -name *policy* -o -name *terms* \\\\\\))",
+      "Bash(curl -sL \"https://github.com/rsms/inter/releases/download/v4.1/Inter-4.1.zip\" -o /tmp/inter.zip)",
+      "Bash(unzip -o /tmp/inter.zip -d /tmp/inter/)"
     ]
   }
 }

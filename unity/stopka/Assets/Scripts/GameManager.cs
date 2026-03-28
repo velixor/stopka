@@ -1,5 +1,7 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace Stopka
@@ -26,6 +28,7 @@ namespace Stopka
 
         // The foundation block (no slicing on first placement)
         private GameObject foundationBlock;
+        private bool hasTriggeredNewRecord;
 
         private void Start()
         {
@@ -59,6 +62,27 @@ namespace Stopka
 
         private bool HasTapInput()
         {
+            // Block input when settings overlay is open
+            if (gameUI != null && gameUI.IsSettingsOpen)
+                return false;
+
+            // Block input during score count-up (first tap skips, second restarts)
+            if (gameUI != null && gameUI.IsCountingUp)
+            {
+                bool tapped = RawTapInput();
+                if (tapped) gameUI.SkipCountUp();
+                return false;
+            }
+
+            // Ignore taps on UI elements (gear icon, etc.)
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+                return false;
+
+            return RawTapInput();
+        }
+
+        private bool RawTapInput()
+        {
             var touch = Touchscreen.current;
             if (touch != null && touch.primaryTouch.press.wasPressedThisFrame)
                 return true;
@@ -82,6 +106,7 @@ namespace Stopka
             tower.Initialize();
             spawner.ResetLayer();
             scoreManager.Reset();
+            hasTriggeredNewRecord = false;
             cameraController.ResetToOrigin();
 
             // Create foundation block (static, sits at origin)
@@ -212,6 +237,14 @@ namespace Stopka
             // Update UI
             if (gameUI != null)
                 gameUI.UpdateScore(scoreManager);
+
+            // Detect new record during play
+            if (!hasTriggeredNewRecord && scoreManager.Score > scoreManager.HighScore)
+            {
+                hasTriggeredNewRecord = true;
+                if (gameUI != null)
+                    gameUI.ShowNewRecordDuringPlay();
+            }
 
             // Track placed block and spawn next
             placedBlocks.Add(currentBlock);
