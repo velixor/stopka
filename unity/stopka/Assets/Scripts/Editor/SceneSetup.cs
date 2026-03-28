@@ -11,7 +11,7 @@ namespace Stopka.Editor
     public static class SceneSetup
     {
         // --- Design tokens ---
-        private static readonly Color PanelBg = new Color(0, 0, 0, 0.55f);
+        private static readonly Color PanelBg = new Color(0, 0, 0, 0.8f);
         private static readonly Color PanelBorder = new Color(1, 1, 1, 0.1f);
         private static readonly Color TextPrimary = new Color(1, 1, 1, 0.7f);
         private static readonly Color TextSecondary = new Color(1, 1, 1, 0.5f);
@@ -251,7 +251,7 @@ namespace Stopka.Editor
 
             var goContent = CreateCenteredContainer(gameOverPanel.transform, "GameOverContent", 0.2f, 0.8f);
 
-            var goText = CreateTMP(goContent.transform, "GameOverText", "GAME OVER", 42, TextAlignmentOptions.Center, font);
+            var goText = CreateTMP(goContent.transform, "GameOverText", "GAME OVER", 56, TextAlignmentOptions.Center, font);
             goText.GetComponent<TextMeshProUGUI>().color = TextSecondary;
             goText.GetComponent<TextMeshProUGUI>().characterSpacing = CharSpacingMedium;
             SetAnchors(goText, new Vector2(0, 0.72f), new Vector2(1, 0.85f));
@@ -263,12 +263,12 @@ namespace Stopka.Editor
             var divider2 = CreateDivider(goContent.transform, "Divider");
             SetAnchors(divider2, new Vector2(0.4f, 0.42f), new Vector2(0.6f, 0.425f));
 
-            var hsEndText = CreateTMP(goContent.transform, "HighScoreText", "BEST: 0", 36, TextAlignmentOptions.Center, font);
+            var hsEndText = CreateTMP(goContent.transform, "HighScoreText", "BEST: 0", 44, TextAlignmentOptions.Center, font);
             hsEndText.GetComponent<TextMeshProUGUI>().color = new Color(1, 1, 1, 0.45f);
             hsEndText.GetComponent<TextMeshProUGUI>().characterSpacing = CharSpacingSmall;
             SetAnchors(hsEndText, new Vector2(0, 0.3f), new Vector2(1, 0.4f));
 
-            var restartText = CreateTMP(goContent.transform, "RestartText", "TAP TO CONTINUE", 36, TextAlignmentOptions.Center, font);
+            var restartText = CreateTMP(goContent.transform, "RestartText", "TAP TO CONTINUE", 44, TextAlignmentOptions.Center, font);
             restartText.GetComponent<TextMeshProUGUI>().color = TextRestart;
             restartText.GetComponent<TextMeshProUGUI>().characterSpacing = CharSpacingMedium;
             SetAnchors(restartText, new Vector2(0, 0.12f), new Vector2(1, 0.25f));
@@ -332,6 +332,21 @@ namespace Stopka.Editor
             var gearBtn = CreateGearButton(safeArea.transform, "GearButton", font);
 
             // ============================
+            // --- Fade Overlay (black, on top of everything) ---
+            // ============================
+            var fadeOverlay = new GameObject("FadeOverlay", typeof(RectTransform));
+            fadeOverlay.transform.SetParent(canvasObj.transform, false);
+            var fadeOverlayRT = fadeOverlay.GetComponent<RectTransform>();
+            fadeOverlayRT.anchorMin = Vector2.zero;
+            fadeOverlayRT.anchorMax = Vector2.one;
+            fadeOverlayRT.sizeDelta = Vector2.zero;
+            var fadeOverlayImg = fadeOverlay.AddComponent<Image>();
+            fadeOverlayImg.color = Color.black;
+            fadeOverlayImg.raycastTarget = false;
+            var fadeOverlayCG = fadeOverlay.AddComponent<CanvasGroup>();
+            fadeOverlayCG.blocksRaycasts = false;
+
+            // ============================
             // --- GameUI component ---
             // ============================
             var gameUI = gmObj.AddComponent<GameUI>();
@@ -340,6 +355,7 @@ namespace Stopka.Editor
             WireField(gameUI, "gameOverFader", gameOverFader);
             WireField(gameUI, "settingsFader", settingsFader);
             WireField(gameUI, "settingsDimBackground", dimBg);
+            WireField(gameUI, "fadeOverlay", fadeOverlayCG);
             WireField(gameUI, "worldScore", worldScore);
             WireField(gameUI, "highScoreStartText", hsStartText.GetComponent<TextMeshProUGUI>());
             WireField(gameUI, "tapToStartText", tapText.GetComponent<TextMeshProUGUI>());

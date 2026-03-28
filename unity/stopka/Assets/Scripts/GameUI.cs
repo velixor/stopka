@@ -13,6 +13,7 @@ namespace Stopka
         [SerializeField] private UIFader gameOverFader;
         [SerializeField] private UIFader settingsFader;
         [SerializeField] private GameObject settingsDimBackground;
+        [SerializeField] private CanvasGroup fadeOverlay;
 
         [Header("Start Screen")]
         [SerializeField] private TextMeshProUGUI highScoreStartText;
@@ -61,6 +62,28 @@ namespace Stopka
             vibrationEnabled = PlayerPrefs.GetInt("VibrationEnabled", 1) == 1;
             UpdateToggleVisual(soundToggleTrack, soundToggleKnob, soundEnabled);
             UpdateToggleVisual(vibrationToggleTrack, vibrationToggleKnob, vibrationEnabled);
+
+            // Initial fade from black
+            if (fadeOverlay != null)
+                StartCoroutine(InitialFadeIn());
+        }
+
+        private IEnumerator InitialFadeIn()
+        {
+            fadeOverlay.alpha = 1f;
+            yield return new WaitForSeconds(0.2f); // brief hold on black
+
+            float duration = 0.8f;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                fadeOverlay.alpha = 1f - Mathf.Clamp01(elapsed / duration);
+                yield return null;
+            }
+
+            fadeOverlay.alpha = 0f;
+            fadeOverlay.gameObject.SetActive(false);
         }
 
         public void SetNewHighScore(bool value)
