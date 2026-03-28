@@ -10,6 +10,7 @@ namespace Stopka
         [SerializeField] private TextMeshPro newBestText;
         [SerializeField] private float heightOffset = 5f;
         [SerializeField] private float followSpeed = 5f;
+        [SerializeField] private float fadeDuration = 0.3f;
 
         private static readonly Color GoldColor = new Color(1f, 0.843f, 0f);
 
@@ -17,6 +18,7 @@ namespace Stopka
         private Camera mainCamera;
         private Coroutine bounceCoroutine;
         private Coroutine glowCoroutine;
+        private Coroutine fadeCoroutine;
         private bool isNewRecord;
 
         private void Start()
@@ -51,6 +53,16 @@ namespace Stopka
             targetY = y;
         }
 
+        /// <summary>
+        /// Snap position to target immediately (no lerp).
+        /// </summary>
+        public void SnapToTarget()
+        {
+            Vector3 pos = transform.position;
+            pos.y = targetY + heightOffset;
+            transform.position = pos;
+        }
+
         public void ShowNewRecord()
         {
             if (isNewRecord) return;
@@ -74,6 +86,7 @@ namespace Stopka
             isNewRecord = false;
             scoreText.text = "0";
             scoreText.color = Color.white;
+            SetAlpha(0f);
 
             if (glowCoroutine != null)
             {
@@ -88,11 +101,53 @@ namespace Stopka
         public void Show()
         {
             gameObject.SetActive(true);
+            SnapToTarget();
+            FadeTo(1f);
         }
 
         public void Hide()
         {
-            gameObject.SetActive(false);
+            if (!gameObject.activeInHierarchy)
+                return;
+            FadeTo(0f, () => gameObject.SetActive(false));
+        }
+
+        private void FadeTo(float targetAlpha, System.Action onComplete = null)
+        {
+            if (fadeCoroutine != null)
+                StopCoroutine(fadeCoroutine);
+            fadeCoroutine = StartCoroutine(FadeCoroutine(targetAlpha, onComplete));
+        }
+
+        private IEnumerator FadeCoroutine(float targetAlpha, System.Action onComplete)
+        {
+            float startAlpha = scoreText.color.a;
+            float elapsed = 0f;
+
+            while (elapsed < fadeDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / fadeDuration));
+                float alpha = Mathf.Lerp(startAlpha, targetAlpha, t);
+                SetAlpha(alpha);
+                yield return null;
+            }
+
+            SetAlpha(targetAlpha);
+            fadeCoroutine = null;
+            onComplete?.Invoke();
+        }
+
+        private void SetAlpha(float alpha)
+        {
+            Color c = scoreText.color;
+            scoreText.color = new Color(c.r, c.g, c.b, alpha);
+
+            if (newBestText != null && newBestText.gameObject.activeSelf)
+            {
+                Color nb = newBestText.color;
+                newBestText.color = new Color(nb.r, nb.g, nb.b, alpha * 0.6f);
+            }
         }
 
         private void Bounce()

@@ -28,6 +28,11 @@ namespace Stopka
 
         public void FadeOut(float duration = 0.3f, System.Action onComplete = null)
         {
+            if (!gameObject.activeInHierarchy)
+            {
+                onComplete?.Invoke();
+                return;
+            }
             EnsureInitialized();
             StopActive();
             activeCoroutine = StartCoroutine(FadeCoroutine(1f, 0f, 1f, 0.95f, duration, () =>

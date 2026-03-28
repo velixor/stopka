@@ -12,14 +12,9 @@ namespace Stopka
         {
             Score++;
             if (isPerfect)
-            {
                 ComboCount++;
-                Score += ComboCount;
-            }
             else
-            {
                 ComboCount = 0;
-            }
         }
 
         public bool TryUpdateHighScore()
