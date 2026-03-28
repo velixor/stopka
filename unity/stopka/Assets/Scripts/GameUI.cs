@@ -79,8 +79,8 @@ namespace Stopka
             yield return new WaitForSeconds(0.3f);
 
             // Fade in "velixor" text
-            float fadeInDuration = 0.8f;
             float elapsed = 0f;
+            float fadeInDuration = 0.8f;
             while (elapsed < fadeInDuration)
             {
                 elapsed += Time.unscaledDeltaTime;
@@ -93,14 +93,30 @@ namespace Stopka
             // Hold splash
             yield return new WaitForSeconds(1.5f);
 
-            // Fade out entire overlay (text + black background)
-            float fadeOutDuration = 0.8f;
+            // Fade out splash text only (background stays black)
             elapsed = 0f;
-            while (elapsed < fadeOutDuration)
+            float textFadeOut = 0.6f;
+            while (elapsed < textFadeOut)
             {
                 elapsed += Time.unscaledDeltaTime;
-                float t = Mathf.Clamp01(elapsed / fadeOutDuration);
-                fadeOverlay.alpha = 1f - t;
+                float t = Mathf.Clamp01(elapsed / textFadeOut);
+                if (splashText != null)
+                    splashText.color = new Color(1f, 1f, 1f, 0.85f * (1f - t));
+                yield return null;
+            }
+            if (splashText != null)
+                splashText.gameObject.SetActive(false);
+
+            // Brief pause on black
+            yield return new WaitForSeconds(0.3f);
+
+            // Fade out black overlay to reveal game + UI
+            elapsed = 0f;
+            float overlayFadeOut = 0.8f;
+            while (elapsed < overlayFadeOut)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                fadeOverlay.alpha = 1f - Mathf.Clamp01(elapsed / overlayFadeOut);
                 yield return null;
             }
 

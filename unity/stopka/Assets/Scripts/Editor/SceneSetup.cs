@@ -347,14 +347,15 @@ namespace Stopka.Editor
             fadeOverlayCG.blocksRaycasts = false;
 
             // Splash "velixor" text (Cormorant font)
-            var splashFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Cormorant SDF.asset");
+            var splashFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Cormorant-Bold SDF.asset");
             if (splashFont == null)
-                Debug.LogWarning("SceneSetup: Cormorant SDF font not found at Assets/Fonts/Cormorant SDF.asset");
+                Debug.LogWarning("SceneSetup: Cormorant-Bold SDF font not found at Assets/Fonts/Cormorant-Bold SDF.asset");
             var splashText = new GameObject("SplashText", typeof(RectTransform));
             splashText.transform.SetParent(fadeOverlay.transform, false);
             var splashTMP = splashText.AddComponent<TextMeshProUGUI>();
             splashTMP.text = "velixor";
-            splashTMP.fontSize = 140;
+            splashTMP.fontSize = 170;
+            // Uses separate bold font asset - no faux bold
             splashTMP.alignment = TextAlignmentOptions.Center;
             splashTMP.color = new Color(1f, 1f, 1f, 0.85f);
             splashTMP.characterSpacing = 8f;
