@@ -124,9 +124,12 @@ namespace Stopka
             fadeOverlay.gameObject.SetActive(false);
         }
 
-        public void SetNewHighScore(bool value)
+        private int previousHighScore;
+
+        public void SetNewHighScore(bool value, int prevHighScore = 0)
         {
             isNewHighScore = value;
+            previousHighScore = prevHighScore;
         }
 
         public void SetState(GameState state, ScoreManager score)
@@ -243,10 +246,10 @@ namespace Stopka
         {
             if (isNewHighScore)
             {
-                gameOverTitleText.text = "\u2605 NEW RECORD \u2605";
+                gameOverTitleText.text = "NEW RECORD";
                 gameOverTitleText.color = new Color(GoldColor.r, GoldColor.g, GoldColor.b, 0.7f);
                 finalScoreText.color = GoldColor;
-                highScoreEndText.text = $"PREVIOUS: {score.HighScore - (score.Score - score.HighScore)}";
+                highScoreEndText.text = previousHighScore > 0 ? $"PREVIOUS: {previousHighScore}" : "";
                 highScoreEndText.color = new Color(1f, 1f, 1f, 0.4f);
             }
             else

@@ -244,13 +244,7 @@ namespace Stopka
                 gameUI.SetScoreTargetHeight(currentBlock.transform.position.y);
             }
 
-            // Detect new record during play
-            if (!hasTriggeredNewRecord && scoreManager.Score > scoreManager.HighScore)
-            {
-                hasTriggeredNewRecord = true;
-                if (gameUI != null)
-                    gameUI.ShowNewRecordDuringPlay();
-            }
+            // New record detection moved to GameOver screen only
 
             // Track placed block and spawn next
             placedBlocks.Add(currentBlock);
@@ -350,6 +344,7 @@ namespace Stopka
 
         private void GameOver()
         {
+            int previousHighScore = scoreManager.HighScore;
             bool isNewHighScore = scoreManager.TryUpdateHighScore();
             if (isNewHighScore)
             {
@@ -357,7 +352,7 @@ namespace Stopka
                 PlayerPrefs.Save();
             }
             if (audioManager != null) audioManager.PlayGameOver();
-            if (gameUI != null) gameUI.SetNewHighScore(isNewHighScore);
+            if (gameUI != null) gameUI.SetNewHighScore(isNewHighScore, previousHighScore);
             cameraController.ShowFullTower(tower.TopPosition.y);
             SetState(GameState.GameOver);
         }
