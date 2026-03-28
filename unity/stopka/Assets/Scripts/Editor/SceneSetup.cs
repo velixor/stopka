@@ -268,7 +268,7 @@ namespace Stopka.Editor
             hsEndText.GetComponent<TextMeshProUGUI>().characterSpacing = CharSpacingSmall;
             SetAnchors(hsEndText, new Vector2(0, 0.3f), new Vector2(1, 0.4f));
 
-            var restartText = CreateTMP(goContent.transform, "RestartText", "TAP TO RESTART", 36, TextAlignmentOptions.Center, font);
+            var restartText = CreateTMP(goContent.transform, "RestartText", "TAP TO CONTINUE", 36, TextAlignmentOptions.Center, font);
             restartText.GetComponent<TextMeshProUGUI>().color = TextRestart;
             restartText.GetComponent<TextMeshProUGUI>().characterSpacing = CharSpacingMedium;
             SetAnchors(restartText, new Vector2(0, 0.12f), new Vector2(1, 0.25f));

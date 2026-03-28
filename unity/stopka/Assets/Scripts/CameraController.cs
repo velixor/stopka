@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 namespace Stopka
@@ -63,6 +64,42 @@ namespace Stopka
             float lookAtOffset = (0.5f - config.blockScreenY) * 2f * baseOrthoSize;
             transform.position = new Vector3(offset.x, offset.y + lookAtOffset, offset.z);
             transform.LookAt(new Vector3(0f, lookAtOffset, 0f));
+        }
+
+        private Coroutine smoothResetCoroutine;
+
+        public void SmoothResetToOrigin(float duration = 1f)
+        {
+            isPullingBack = false;
+            if (smoothResetCoroutine != null)
+                StopCoroutine(smoothResetCoroutine);
+            smoothResetCoroutine = StartCoroutine(SmoothResetCoroutine(duration));
+        }
+
+        private IEnumerator SmoothResetCoroutine(float duration)
+        {
+            float startY = currentY;
+            float startOrtho = cam != null ? cam.orthographicSize : baseOrthoSize;
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / duration));
+                currentY = Mathf.Lerp(startY, 0f, t);
+                targetY = 0f;
+                velocityY = 0f;
+                if (cam != null)
+                    cam.orthographicSize = Mathf.Lerp(startOrtho, baseOrthoSize, t);
+                yield return null;
+            }
+
+            currentY = 0f;
+            targetY = 0f;
+            velocityY = 0f;
+            orthoSizeVelocity = 0f;
+            if (cam != null) cam.orthographicSize = baseOrthoSize;
+            smoothResetCoroutine = null;
         }
 
         private void LateUpdate()

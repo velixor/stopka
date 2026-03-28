@@ -99,6 +99,14 @@ namespace Stopka
                     // playingFader stays visible during count-up, hidden after
                     ShowGameOverPanel(score);
                     break;
+
+                case GameState.Transition:
+                    gameOverFader.FadeOut(FadeDuration);
+                    startFader.HideImmediate();
+                    if (playingFader != null) playingFader.HideImmediate();
+                    if (worldScore != null) worldScore.Hide();
+                    StopTapPulse();
+                    break;
             }
         }
 

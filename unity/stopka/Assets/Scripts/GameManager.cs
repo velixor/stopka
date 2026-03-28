@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 
 namespace Stopka
 {
-    public enum GameState { Start, Playing, GameOver }
+    public enum GameState { Start, Playing, GameOver, Transition }
 
     public class GameManager : MonoBehaviour
     {
@@ -37,6 +37,11 @@ namespace Stopka
             scoreManager = new ScoreManager();
             scoreManager.HighScore = PlayerPrefs.GetInt("HighScore", 0);
             colorManager.Initialize();
+
+            // Create foundation block visible behind Start panel
+            tower.Initialize();
+            CreateFoundation();
+
             if (skyboxController != null)
                 skyboxController.UpdateFromBlockColor(colorManager.CurrentBlockColor);
             SetState(GameState.Start);
@@ -103,16 +108,12 @@ namespace Stopka
 
         private void StartGame()
         {
-            tower.Initialize();
+            // Foundation already exists from initial Start() or TransitionCoroutine
             spawner.ResetLayer();
             scoreManager.Reset();
             hasTriggeredNewRecord = false;
-            cameraController.ResetToOrigin();
 
-            // Create foundation block (static, sits at origin)
-            CreateFoundation();
-
-            // Spawn first moving block
+            // Spawn first moving block on top of existing foundation
             SpawnNextBlock();
             if (gameUI != null)
                 gameUI.SetScoreTargetHeight(config.blockHeight);
@@ -363,9 +364,108 @@ namespace Stopka
 
         private void RestartGame()
         {
-            cameraController.StopPullback();
+            SetState(GameState.Transition);
+            StartCoroutine(TransitionCoroutine());
+        }
 
-            // Destroy all placed blocks
+        private IEnumerator TransitionCoroutine()
+        {
+            // 1. Game Over panel fades out (handled by SetState Transition)
+            yield return new WaitForSeconds(0.3f);
+
+            // 2. Camera smooth reset (runs in parallel with tower exit)
+            cameraController.SmoothResetToOrigin(1.5f);
+
+            // 3. Exit old tower
+            if (config.towerExitMode == TowerExitMode.Sink)
+            {
+                yield return SinkTower();
+            }
+            else
+            {
+                CollapseTower();
+                yield return new WaitForSeconds(2f);
+            }
+
+            // 4. Cleanup remaining objects
+            CleanupAllBlocks();
+
+            // 5. Re-init tower state
+            tower.Initialize();
+            spawner.ResetLayer();
+
+            // 6. Drop new foundation from above
+            yield return DropNewFoundation();
+
+            // 7. Show Start panel
+            SetState(GameState.Start);
+        }
+
+        private IEnumerator SinkTower()
+        {
+            var container = new GameObject("SinkContainer");
+
+            // Parent all blocks to container
+            if (foundationBlock != null)
+                foundationBlock.transform.SetParent(container.transform);
+            foreach (var block in placedBlocks)
+            {
+                if (block != null)
+                    block.transform.SetParent(container.transform);
+            }
+            if (currentBlock != null)
+                currentBlock.transform.SetParent(container.transform);
+
+            // Lerp container down
+            float startY = container.transform.position.y;
+            float targetY = startY - 30f;
+            float duration = 1.5f;
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                t = t * t; // ease-in
+                container.transform.position = new Vector3(0, Mathf.Lerp(startY, targetY, t), 0);
+                yield return null;
+            }
+
+            Destroy(container);
+        }
+
+        private void CollapseTower()
+        {
+            var allBlocks = new List<GameObject>();
+            if (foundationBlock != null) allBlocks.Add(foundationBlock);
+            foreach (var block in placedBlocks)
+            {
+                if (block != null) allBlocks.Add(block.gameObject);
+            }
+            if (currentBlock != null) allBlocks.Add(currentBlock.gameObject);
+
+            foreach (var go in allBlocks)
+            {
+                // Remove colliders to prevent block-on-block jitter
+                foreach (var col in go.GetComponents<Collider>())
+                    Destroy(col);
+
+                var rb = go.AddComponent<Rigidbody>();
+                rb.useGravity = true;
+                // Random small force for scatter
+                rb.AddForce(new Vector3(
+                    Random.Range(-2f, 2f), Random.Range(1f, 3f), Random.Range(-2f, 2f)),
+                    ForceMode.Impulse);
+                rb.AddTorque(Random.insideUnitSphere * 3f, ForceMode.Impulse);
+
+                go.AddComponent<DestroyWhenFallen>();
+                Destroy(go, 3f); // safety net
+            }
+        }
+
+        private void CleanupAllBlocks()
+        {
+            // Destroy any remaining blocks
             foreach (var block in placedBlocks)
             {
                 if (block != null)
@@ -373,18 +473,54 @@ namespace Stopka
             }
             placedBlocks.Clear();
 
-            // Destroy current sliding block if still alive
             if (currentBlock != null)
+            {
                 Destroy(currentBlock.gameObject);
+                currentBlock = null;
+            }
+
+            if (foundationBlock != null)
+            {
+                Destroy(foundationBlock);
+                foundationBlock = null;
+            }
 
             // Destroy any remaining cutoff/fallen pieces
             foreach (var piece in FindObjectsByType<DestroyWhenFallen>(FindObjectsSortMode.None))
                 Destroy(piece.gameObject);
+        }
 
-            if (foundationBlock != null)
-                Destroy(foundationBlock);
+        private IEnumerator DropNewFoundation()
+        {
+            CreateFoundation();
 
-            StartGame();
+            // Start above screen, lerp down to origin
+            float startY = 15f;
+            float targetY = 0f;
+            float duration = 0.8f;
+            float elapsed = 0f;
+
+            foundationBlock.transform.position = new Vector3(0, startY, 0);
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                // Ease out with slight overshoot
+                float eased = 1f - Mathf.Pow(1f - t, 3f);
+                if (t > 0.7f)
+                {
+                    // Small bounce at the end
+                    float bounceT = (t - 0.7f) / 0.3f;
+                    float bounce = Mathf.Sin(bounceT * Mathf.PI) * 0.15f;
+                    eased += bounce * (1f - bounceT);
+                }
+                float y = Mathf.Lerp(startY, targetY, eased);
+                foundationBlock.transform.position = new Vector3(0, y, 0);
+                yield return null;
+            }
+
+            foundationBlock.transform.position = Vector3.zero;
         }
     }
 }
