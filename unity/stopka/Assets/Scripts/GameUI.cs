@@ -54,8 +54,11 @@ namespace Stopka
         private bool soundEnabled;
         private bool vibrationEnabled;
 
+        private bool isSplashActive = true;
+
         public bool IsSettingsOpen => isSettingsOpen;
         public bool IsCountingUp => isCountingUp;
+        public bool IsSplashActive => isSplashActive;
 
         private void Start()
         {
@@ -122,6 +125,7 @@ namespace Stopka
 
             fadeOverlay.alpha = 0f;
             fadeOverlay.gameObject.SetActive(false);
+            isSplashActive = false;
         }
 
         private int previousHighScore;

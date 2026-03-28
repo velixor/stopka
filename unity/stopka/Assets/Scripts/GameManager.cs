@@ -67,6 +67,10 @@ namespace Stopka
 
         private bool HasTapInput()
         {
+            // Block input during splash screen
+            if (gameUI != null && gameUI.IsSplashActive)
+                return false;
+
             // Block input when settings overlay is open
             if (gameUI != null && gameUI.IsSettingsOpen)
                 return false;
