@@ -38,6 +38,15 @@ namespace Stopka.Editor
                 Object.DestroyImmediate(oldEs.gameObject);
             foreach (var oldCanvas in Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None))
                 Object.DestroyImmediate(oldCanvas.gameObject);
+            // Clean up WorldScoreDisplay (may be inactive, so find by name)
+            var oldWorldScore = GameObject.Find("WorldScoreDisplay");
+            if (oldWorldScore != null) Object.DestroyImmediate(oldWorldScore);
+            // Also search inactive objects in scene roots
+            foreach (var root in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+            {
+                if (root.name == "WorldScoreDisplay")
+                    Object.DestroyImmediate(root);
+            }
             if (Camera.main != null)
             {
                 var camTransform = Camera.main.transform;
@@ -229,6 +238,7 @@ namespace Stopka.Editor
             var worldScore = worldScoreObj.AddComponent<WorldScoreDisplay>();
             WireField(worldScore, "scoreText", scoreTMP3D);
             WireField(worldScore, "newBestText", newBestTMP3D);
+            worldScoreObj.SetActive(false);
 
             // Playing panel is now minimal (just for fade state tracking, no visible content)
             UIFader playingFader = null;

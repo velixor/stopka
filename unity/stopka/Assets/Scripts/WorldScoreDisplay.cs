@@ -8,7 +8,7 @@ namespace Stopka
     {
         [SerializeField] private TextMeshPro scoreText;
         [SerializeField] private TextMeshPro newBestText;
-        [SerializeField] private float heightOffset = 3f;
+        [SerializeField] private float heightOffset = 5f;
         [SerializeField] private float followSpeed = 5f;
 
         private static readonly Color GoldColor = new Color(1f, 0.843f, 0f);
