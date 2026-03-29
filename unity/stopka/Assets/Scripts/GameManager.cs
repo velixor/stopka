@@ -414,6 +414,9 @@ namespace Stopka
             }
             if (currentBlock != null)
                 currentBlock.transform.SetParent(container.transform);
+            // Pick up any fallen/cutoff pieces (including missed block)
+            foreach (var fallen in FindObjectsByType<DestroyWhenFallen>(FindObjectsSortMode.None))
+                fallen.transform.SetParent(container.transform);
 
             // Lerp container down
             float startY = container.transform.position.y;
@@ -442,6 +445,12 @@ namespace Stopka
                 if (block != null) allBlocks.Add(block.gameObject);
             }
             if (currentBlock != null) allBlocks.Add(currentBlock.gameObject);
+            // Pick up any fallen/cutoff pieces (including missed block)
+            foreach (var fallen in FindObjectsByType<DestroyWhenFallen>(FindObjectsSortMode.None))
+            {
+                if (!allBlocks.Contains(fallen.gameObject))
+                    allBlocks.Add(fallen.gameObject);
+            }
 
             foreach (var go in allBlocks)
             {
@@ -449,7 +458,7 @@ namespace Stopka
                 foreach (var col in go.GetComponents<Collider>())
                     Destroy(col);
 
-                var rb = go.AddComponent<Rigidbody>();
+                var rb = go.GetComponent<Rigidbody>() ?? go.AddComponent<Rigidbody>();
                 rb.useGravity = true;
                 // Random small force for scatter
                 rb.AddForce(new Vector3(
