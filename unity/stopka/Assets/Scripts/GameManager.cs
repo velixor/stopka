@@ -191,7 +191,11 @@ namespace Stopka
                 // Combo recovery: after streak threshold, random axis, clamped to foundation bounds
                 if (scoreManager.ShouldRecover(config.comboRecoveryThreshold))
                 {
-                    bool recoverX = Random.value < 0.5f;
+                    // Prefer recovering the smaller axis
+                    float sizeX = currentBlock.Size.x;
+                    float sizeZ = currentBlock.Size.y;
+                    float chanceX = sizeX < sizeZ ? 0.75f : (sizeX > sizeZ ? 0.25f : 0.5f);
+                    bool recoverX = Random.value < chanceX;
 
                     if (recoverX)
                     {
