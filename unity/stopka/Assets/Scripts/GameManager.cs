@@ -421,7 +421,13 @@ namespace Stopka
                 currentBlock.transform.SetParent(container.transform);
             // Pick up any fallen/cutoff pieces (including missed block)
             foreach (var fallen in FindObjectsByType<DestroyWhenFallen>(FindObjectsSortMode.None))
+            {
+                // Remove physics so pieces move with the container
+                var fallenRb = fallen.GetComponent<Rigidbody>();
+                if (fallenRb != null)
+                    Destroy(fallenRb);
                 fallen.transform.SetParent(container.transform);
+            }
 
             // Lerp container down
             float startY = container.transform.position.y;
