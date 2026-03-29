@@ -48,6 +48,8 @@ namespace Stopka
         public float waveWidth = 1.5f;
         [Tooltip("Strength of vertex displacement")]
         public float waveStrength = 0.3f;
+        [Tooltip("Number of blocks the wave reaches before fully fading out (0 = unlimited)")]
+        public int waveReachBlocks = 0;
 
         [Header("Colors")]
         [Tooltip("Number of blocks per color transition")]

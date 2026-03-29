@@ -93,6 +93,11 @@ namespace Stopka
         {
             float topY = placedBlocks[placedBlocks.Count - 1].transform.position.y;
             float bottomY = 0f;
+
+            bool hasFade = config.waveReachBlocks > 0;
+            if (hasFade)
+                bottomY = Mathf.Max(0f, topY - config.waveReachBlocks * config.blockHeight);
+
             float totalDistance = topY - bottomY + config.waveWidth;
 
             SetStrategyKeyword(placedBlocks, foundationBlock);
@@ -109,6 +114,10 @@ namespace Stopka
                 float t = elapsed / duration;
                 float currentY = Mathf.Lerp(topY + config.waveWidth, bottomY - config.waveWidth, t);
                 Shader.SetGlobalFloat(WaveFrontYId, currentY);
+
+                if (hasFade)
+                    Shader.SetGlobalFloat(WaveStrengthId, Mathf.Lerp(config.waveStrength, 0f, t));
+
                 yield return null;
             }
 
