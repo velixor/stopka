@@ -312,7 +312,7 @@ namespace Stopka
             Vector3 twistAxis = block.Axis == SlideAxis.X
                 ? new Vector3(Random.Range(-1f, 1f), 0f, 0f)
                 : new Vector3(0f, 0f, Random.Range(-1f, 1f));
-            rb.AddTorque((tiltAxis + twistAxis * 0.4f) * Random.Range(0.1f, 0.4f), ForceMode.Impulse);
+            rb.AddTorque(tiltAxis * Random.Range(0.1f, 0.4f) + twistAxis * Random.Range(0.15f, 0.45f), ForceMode.Impulse);
 
             // Only destroy when it falls off-screen, not on a timer
             cutoff.AddComponent<DestroyWhenFallen>();
