@@ -28,7 +28,7 @@ namespace Stopka
 
         // The foundation block (no slicing on first placement)
         private GameObject foundationBlock;
-        private bool hasTriggeredNewRecord;
+
 
         private void Start()
         {
@@ -115,7 +115,7 @@ namespace Stopka
             // Foundation already exists from initial Start() or TransitionCoroutine
             spawner.ResetLayer();
             scoreManager.Reset();
-            hasTriggeredNewRecord = false;
+
 
             // Spawn first moving block on top of existing foundation
             SpawnNextBlock();
@@ -372,16 +372,17 @@ namespace Stopka
             // 1. Game Over panel fades out (handled by SetState Transition)
             yield return new WaitForSeconds(0.3f);
 
-            // 2. Camera smooth reset (runs in parallel with tower sinking)
-            cameraController.SmoothResetToOrigin(1.5f);
-
-            // 3. Sink tower down
+            // 2. Sink tower down (camera stays in pullback position)
             yield return SinkTower();
 
-            // 4. Cleanup
+            // 3. Cleanup
             CleanupAllBlocks();
             tower.Initialize();
             spawner.ResetLayer();
+
+            // 4. Camera reset while screen is empty (quick, invisible to player)
+            cameraController.SmoothResetToOrigin(0.3f);
+            yield return new WaitForSeconds(0.3f);
 
             // 5. Drop new foundation from above
             yield return DropNewFoundation();
