@@ -222,9 +222,10 @@ namespace Stopka
                 if (audioManager != null) audioManager.PlayPlace(scoreManager.ComboCount);
                 if (cameraShake != null) cameraShake.Shake(0.05f + scoreManager.ComboCount * 0.02f);
 
-                // Pulse glow on the placed block
+                // Pulse glow on the placed block — intensity ramps up with combo progress
+                float comboFraction = Mathf.Clamp01((float)scoreManager.ComboCount / config.comboRecoveryThreshold);
                 var pulse = currentBlock.gameObject.AddComponent<BlockPulse>();
-                pulse.Pulse(colorManager.GetColorForLayer(spawner.CurrentLayer - 1), config.pulseIntensity, config.pulseDuration);
+                pulse.Pulse(colorManager.GetColorForLayer(spawner.CurrentLayer - 1), config.pulseIntensity * comboFraction, config.pulseDuration);
 
                 // Tower glow wave on 3+ combo
                 if (scoreManager.ComboCount >= config.comboRecoveryThreshold && towerWave != null)
