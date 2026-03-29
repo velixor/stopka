@@ -301,10 +301,18 @@ namespace Stopka
                 ? new Vector3(Mathf.Sign(result.CutCenter - result.NewCenter), 0f, 0f)
                 : new Vector3(0f, 0f, Mathf.Sign(result.CutCenter - result.NewCenter));
 
-            // Use Rigidbody with frozen rotation for natural-looking fall
             var rb = cutoff.AddComponent<Rigidbody>();
-            rb.freezeRotation = true;
-            rb.linearVelocity = slideDir * 2f;
+            // Gentle detach: tiny push outward + slight random tilt
+            rb.linearVelocity = slideDir * Random.Range(0.1f, 0.3f);
+            // Main tilt: away from cut edge
+            Vector3 tiltAxis = block.Axis == SlideAxis.X
+                ? new Vector3(0f, 0f, -Mathf.Sign(result.CutCenter - result.NewCenter))
+                : new Vector3(Mathf.Sign(result.CutCenter - result.NewCenter), 0f, 0f);
+            // Add perpendicular twist for "peeling from a corner" feel
+            Vector3 twistAxis = block.Axis == SlideAxis.X
+                ? new Vector3(Random.Range(-1f, 1f), 0f, 0f)
+                : new Vector3(0f, 0f, Random.Range(-1f, 1f));
+            rb.AddTorque((tiltAxis + twistAxis * 0.4f) * Random.Range(0.1f, 0.4f), ForceMode.Impulse);
 
             // Only destroy when it falls off-screen, not on a timer
             cutoff.AddComponent<DestroyWhenFallen>();
