@@ -3,7 +3,6 @@ using UnityEngine;
 namespace Stopka
 {
     public enum WaveStrategy { Bulge, Squeeze, Jitter }
-    public enum TowerExitMode { Sink, Collapse }
 
     [CreateAssetMenu(fileName = "GameConfig", menuName = "Stopka/Game Config")]
     public class GameConfig : ScriptableObject
@@ -61,9 +60,6 @@ namespace Stopka
         public float pastelValMin = 0.85f;
         [Range(0.8f, 1f)]
         public float pastelValMax = 0.95f;
-
-        [Header("Transition")]
-        public TowerExitMode towerExitMode = TowerExitMode.Sink;
 
         [Header("Camera")]
         public Vector3 cameraOffset = new Vector3(5f, 6f, 5f);

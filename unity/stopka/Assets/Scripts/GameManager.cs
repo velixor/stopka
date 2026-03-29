@@ -372,31 +372,21 @@ namespace Stopka
             // 1. Game Over panel fades out (handled by SetState Transition)
             yield return new WaitForSeconds(0.3f);
 
-            // 2. Camera smooth reset (runs in parallel with tower exit)
+            // 2. Camera smooth reset (runs in parallel with tower sinking)
             cameraController.SmoothResetToOrigin(1.5f);
 
-            // 3. Exit old tower
-            if (config.towerExitMode == TowerExitMode.Sink)
-            {
-                yield return SinkTower();
-            }
-            else
-            {
-                CollapseTower();
-                yield return new WaitForSeconds(2f);
-            }
+            // 3. Sink tower down
+            yield return SinkTower();
 
-            // 4. Cleanup remaining objects
+            // 4. Cleanup
             CleanupAllBlocks();
-
-            // 5. Re-init tower state
             tower.Initialize();
             spawner.ResetLayer();
 
-            // 6. Drop new foundation from above
+            // 5. Drop new foundation from above
             yield return DropNewFoundation();
 
-            // 7. Show Start panel
+            // 6. Show Start panel
             SetState(GameState.Start);
         }
 
@@ -436,44 +426,8 @@ namespace Stopka
             Destroy(container);
         }
 
-        private void CollapseTower()
-        {
-            var allBlocks = new List<GameObject>();
-            if (foundationBlock != null) allBlocks.Add(foundationBlock);
-            foreach (var block in placedBlocks)
-            {
-                if (block != null) allBlocks.Add(block.gameObject);
-            }
-            if (currentBlock != null) allBlocks.Add(currentBlock.gameObject);
-            // Pick up any fallen/cutoff pieces (including missed block)
-            foreach (var fallen in FindObjectsByType<DestroyWhenFallen>(FindObjectsSortMode.None))
-            {
-                if (!allBlocks.Contains(fallen.gameObject))
-                    allBlocks.Add(fallen.gameObject);
-            }
-
-            foreach (var go in allBlocks)
-            {
-                // Remove colliders to prevent block-on-block jitter
-                foreach (var col in go.GetComponents<Collider>())
-                    Destroy(col);
-
-                var rb = go.GetComponent<Rigidbody>() ?? go.AddComponent<Rigidbody>();
-                rb.useGravity = true;
-                // Random small force for scatter
-                rb.AddForce(new Vector3(
-                    Random.Range(-2f, 2f), Random.Range(1f, 3f), Random.Range(-2f, 2f)),
-                    ForceMode.Impulse);
-                rb.AddTorque(Random.insideUnitSphere * 3f, ForceMode.Impulse);
-
-                go.AddComponent<DestroyWhenFallen>();
-                Destroy(go, 3f); // safety net
-            }
-        }
-
         private void CleanupAllBlocks()
         {
-            // Destroy any remaining blocks
             foreach (var block in placedBlocks)
             {
                 if (block != null)
@@ -493,7 +447,6 @@ namespace Stopka
                 foundationBlock = null;
             }
 
-            // Destroy any remaining cutoff/fallen pieces
             foreach (var piece in FindObjectsByType<DestroyWhenFallen>(FindObjectsSortMode.None))
                 Destroy(piece.gameObject);
         }
