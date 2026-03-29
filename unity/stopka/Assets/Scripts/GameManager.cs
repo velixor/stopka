@@ -302,6 +302,7 @@ namespace Stopka
                 : new Vector3(0f, 0f, Mathf.Sign(result.CutCenter - result.NewCenter));
 
             var rb = cutoff.AddComponent<Rigidbody>();
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
             // Gentle detach: tiny push outward + slight random tilt
             rb.linearVelocity = slideDir * Random.Range(0.1f, 0.3f);
             // Main tilt: away from cut edge
@@ -351,6 +352,7 @@ namespace Stopka
 
             var rb = go.AddComponent<Rigidbody>();
             rb.useGravity = true;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
             go.AddComponent<DestroyWhenFallen>();
         }
 
