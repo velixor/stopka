@@ -36,6 +36,5 @@ MonoBehaviour:
   pastelSatMax: 0.45
   pastelValMin: 0.85
   pastelValMax: 0.95
-  towerExitMode: 0
-  cameraOffset: {x: 5, y: 6, z: 5}
+  cameraOffset: {x: 5, y: 7, z: 5}
   blockScreenY: 0.4
