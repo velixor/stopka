@@ -15,6 +15,7 @@ namespace Stopka
         private static readonly Color GoldColor = new Color(1f, 0.843f, 0f);
 
         private float targetY;
+        private float velocityY;
         private Camera mainCamera;
         private Coroutine bounceCoroutine;
         private Coroutine glowCoroutine;
@@ -37,7 +38,7 @@ namespace Stopka
             // Smoothly follow target height
             Vector3 pos = transform.position;
             float desiredY = targetY + heightOffset;
-            pos.y = Mathf.Lerp(pos.y, desiredY, Time.deltaTime * followSpeed);
+            pos.y = Mathf.SmoothDamp(pos.y, desiredY, ref velocityY, 1f / followSpeed);
             transform.position = pos;
         }
 
@@ -61,6 +62,7 @@ namespace Stopka
             Vector3 pos = transform.position;
             pos.y = targetY + heightOffset;
             transform.position = pos;
+            velocityY = 0f;
         }
 
         public void ShowNewRecord()
