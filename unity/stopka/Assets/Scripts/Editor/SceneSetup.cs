@@ -276,62 +276,6 @@ namespace Stopka.Editor
             gameOverPanel.SetActive(false);
 
             // ============================
-            // --- Settings Panel ---
-            // ============================
-            // Dim background (fullscreen, behind settings)
-            var dimBg = new GameObject("SettingsDimBg", typeof(RectTransform));
-            dimBg.transform.SetParent(canvasObj.transform, false);
-            var dimBgRT = dimBg.GetComponent<RectTransform>();
-            dimBgRT.anchorMin = Vector2.zero;
-            dimBgRT.anchorMax = Vector2.one;
-            dimBgRT.sizeDelta = Vector2.zero;
-            var dimBgImg = dimBg.AddComponent<Image>();
-            dimBgImg.color = DimBg;
-            var dimBgBtn = dimBg.AddComponent<Button>();
-            dimBgBtn.transition = Selectable.Transition.None;
-            dimBg.SetActive(false);
-
-            var settingsPanel = CreateFrostedPanel(canvasObj.transform, "SettingsPanel", 0.1f, 0.35f, 0.9f, 0.65f);
-            var settingsFader = settingsPanel.GetComponent<UIFader>();
-
-            var settingsContent = CreateCenteredContainer(settingsPanel.transform, "SettingsContent", 0.05f, 0.95f);
-            var settingsContentRT = settingsContent.GetComponent<RectTransform>();
-            settingsContentRT.anchorMin = new Vector2(0.1f, 0.05f);
-            settingsContentRT.anchorMax = new Vector2(0.9f, 0.95f);
-
-            var settingsTitle = CreateTMP(settingsContent.transform, "SettingsTitle", "SETTINGS", 36, TextAlignmentOptions.Center, font);
-            settingsTitle.GetComponent<TextMeshProUGUI>().color = new Color(1, 1, 1, 0.6f);
-            settingsTitle.GetComponent<TextMeshProUGUI>().characterSpacing = CharSpacingMedium;
-            SetAnchors(settingsTitle, new Vector2(0, 0.78f), new Vector2(1, 0.95f));
-
-            // Sound toggle row
-            var soundRow = CreateToggleRow(settingsContent.transform, "SoundRow", "SOUND", font, 0.5f, 0.72f);
-            var soundTrack = soundRow.transform.Find("ToggleTrack").GetComponent<Image>();
-            var soundKnob = soundRow.transform.Find("ToggleTrack/Knob").GetComponent<RectTransform>();
-
-            // Vibration toggle row
-            var vibrationRow = CreateToggleRow(settingsContent.transform, "VibrationRow", "VIBRATION", font, 0.25f, 0.47f);
-            var vibrationTrack = vibrationRow.transform.Find("ToggleTrack").GetComponent<Image>();
-            var vibrationKnob = vibrationRow.transform.Find("ToggleTrack/Knob").GetComponent<RectTransform>();
-
-            // Divider
-            var divider3 = CreateDivider(settingsContent.transform, "Divider");
-            SetAnchors(divider3, new Vector2(0.35f, 0.18f), new Vector2(0.65f, 0.185f));
-
-            // Close text
-            var closeText = CreateTMP(settingsContent.transform, "CloseText", "TAP TO CLOSE", 28, TextAlignmentOptions.Center, font);
-            closeText.GetComponent<TextMeshProUGUI>().color = TextTertiary;
-            closeText.GetComponent<TextMeshProUGUI>().characterSpacing = CharSpacingSmall;
-            SetAnchors(closeText, new Vector2(0, 0.02f), new Vector2(1, 0.15f));
-
-            settingsPanel.SetActive(false);
-
-            // ============================
-            // --- Gear Icons (inside SafeArea) ---
-            // ============================
-            var gearBtn = CreateGearButton(safeArea.transform, "GearButton", font);
-
-            // ============================
             // --- Splash / Fade Overlay (black, on top of everything) ---
             // ============================
             var fadeOverlay = new GameObject("FadeOverlay", typeof(RectTransform));
@@ -374,8 +318,6 @@ namespace Stopka.Editor
             WireField(gameUI, "startFader", startFader);
             if (playingFader != null) WireField(gameUI, "playingFader", playingFader);
             WireField(gameUI, "gameOverFader", gameOverFader);
-            WireField(gameUI, "settingsFader", settingsFader);
-            WireField(gameUI, "settingsDimBackground", dimBg);
             WireField(gameUI, "fadeOverlay", fadeOverlayCG);
             WireField(gameUI, "splashText", splashTMP);
             WireField(gameUI, "worldScore", worldScore);
@@ -385,29 +327,7 @@ namespace Stopka.Editor
             WireField(gameUI, "finalScoreText", finalScoreObj.GetComponent<TextMeshProUGUI>());
             WireField(gameUI, "highScoreEndText", hsEndText.GetComponent<TextMeshProUGUI>());
             WireField(gameUI, "restartText", restartText.GetComponent<TextMeshProUGUI>());
-            WireField(gameUI, "soundToggleTrack", soundTrack);
-            WireField(gameUI, "soundToggleKnob", soundKnob);
-            WireField(gameUI, "vibrationToggleTrack", vibrationTrack);
-            WireField(gameUI, "vibrationToggleKnob", vibrationKnob);
             WireField(gameUI, "audioManager", audioMgr);
-
-            // Wire button events
-            // Gear -> OpenSettings
-            var gearBtnComp = gearBtn.GetComponent<Button>();
-            UnityEditor.Events.UnityEventTools.AddPersistentListener(gearBtnComp.onClick, gameUI.OpenSettings);
-
-            // Dim background -> CloseSettings
-            UnityEditor.Events.UnityEventTools.AddPersistentListener(dimBgBtn.onClick, gameUI.CloseSettings);
-
-            // Sound toggle button
-            var soundBtn = soundRow.transform.Find("ToggleTrack").gameObject.AddComponent<Button>();
-            soundBtn.transition = Selectable.Transition.None;
-            UnityEditor.Events.UnityEventTools.AddPersistentListener(soundBtn.onClick, gameUI.ToggleSound);
-
-            // Vibration toggle button
-            var vibBtn = vibrationRow.transform.Find("ToggleTrack").gameObject.AddComponent<Button>();
-            vibBtn.transition = Selectable.Transition.None;
-            UnityEditor.Events.UnityEventTools.AddPersistentListener(vibBtn.onClick, gameUI.ToggleVibration);
 
             // --- Wire GameManager ---
             WireField(gm, "config", config);

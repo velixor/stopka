@@ -202,48 +202,6 @@ namespace Stopka
                 skipCountUp = true;
         }
 
-        // --- Settings ---
-
-        public void OpenSettings()
-        {
-            if (isSettingsOpen) return;
-            isSettingsOpen = true;
-            if (settingsDimBackground != null)
-                settingsDimBackground.SetActive(true);
-            settingsFader.FadeIn(FadeDuration);
-        }
-
-        public void CloseSettings()
-        {
-            if (!isSettingsOpen) return;
-            isSettingsOpen = false;
-            settingsFader.FadeOut(FadeDuration, () =>
-            {
-                if (settingsDimBackground != null)
-                    settingsDimBackground.SetActive(false);
-            });
-        }
-
-        public void ToggleSound()
-        {
-            soundEnabled = !soundEnabled;
-            PlayerPrefs.SetInt("SoundEnabled", soundEnabled ? 1 : 0);
-            PlayerPrefs.Save();
-            UpdateToggleVisual(soundToggleTrack, soundToggleKnob, soundEnabled);
-            if (audioManager != null)
-                audioManager.SetMuted(!soundEnabled);
-        }
-
-        public void ToggleVibration()
-        {
-            vibrationEnabled = !vibrationEnabled;
-            PlayerPrefs.SetInt("VibrationEnabled", vibrationEnabled ? 1 : 0);
-            PlayerPrefs.Save();
-            UpdateToggleVisual(vibrationToggleTrack, vibrationToggleKnob, vibrationEnabled);
-        }
-
-        public bool IsVibrationEnabled => vibrationEnabled;
-
         // --- Private ---
 
         private void ShowGameOverPanel(ScoreManager score)
